@@ -15,7 +15,8 @@
 * Separate to different modules (separate 'data' classes from REST implementation)
 * Uniformity with _ prefix
 * Type hints
-
+* Remove any 'TODO'
+* Removed unnecessary comments
 
 # Questions
 * Indexing of dishes. Can we reuse the same index?

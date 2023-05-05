@@ -7,6 +7,7 @@ TODO:
 
 
 import requests
+import json
 
 
 # Sources paths
@@ -145,3 +146,11 @@ post_dish('salad')
 post_dish('steak')
 post_dish('ice cream')
 print_res(get_all_dishes())
+
+
+meals = root + '/meals'
+header = {'Content-Type': 'application/json'}
+payload = json.dumps({'name': 'basic', 'appetizer': 3, 'main': 4, 'desert': 5})
+res = requests.post(meals, headers=header, data=payload)
+print_res(res)
+

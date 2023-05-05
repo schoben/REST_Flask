@@ -142,10 +142,63 @@ class DishesName(Resource):
             return  -5, 404
 
 
+class Meal:
+    """Class representing a Meal consisting of appetizer, main and desert"""
+
+    def __init__(self, name, appetizer, main, desert):
+        self.appetizer = dishes_collection.get_dish_by_idx(appetizer)
+        self.main = dishes_collection.get_dish_by_idx(main)
+        self.desert = dishes_collection.get_dish_by_idx(desert)
+
+
+class MealsCollection:
+    """Class representing a collection of meals"""
+
+    def __init__(self):
+        self.num_of_meals = 0
+        self.meals = dict()
+
+    def add_meal(self, meal):
+        self.num_of_meals += 1  # No concurrency support
+        self.meals[self.num_of_meals] = meal
+        return self.num_of_meals  # The index of the meal
+
+
+meals_collection = MealsCollection()
+
+
+class Meals(Resource):
+    """RESTful API for the meals resource"""
+
+    def post(self):
+        print(f"meals post invoke")
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', required=True)
+        parser.add_argument('appetizer', required=True, type=int)
+        parser.add_argument('main', required=True, type=int)
+        parser.add_argument('desert', required=True, type=int)
+        args = parser.parse_args()
+        print(args)
+        try:
+            name = args['name']
+            appetizer = args['appetizer']
+            main = args['main']
+            desert = args['desert']
+            print(f"Adding a dish. Name: {name}, appetizer: {appetizer}, desert: {desert}")
+            print(dishes_collection._get_all_dishes())
+            meal = Meal(name, appetizer, main, desert)
+            idx = meals_collection.add_meal(meal)
+            return idx, 200
+        except KeyError as e:
+            print(f"Invalid key: {e}")
+            return -1, 422  # TODO: update this according to instructions
+
+
 # Adding resources to the Flask app API
 api.add_resource(Dishes, '/dishes')
 api.add_resource(DishesId, '/dishes/<int:idx>')
 api.add_resource(DishesName, '/dishes/<string:name>')
+api.add_resource(Meals, '/meals')
 
 if __name__ == '__main__':
     print(f"Running Meals&Dishes server ({__file__})")
