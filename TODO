@@ -1,0 +1,23 @@
+# Major
+* Add Meals classes and resources
+* Use ninjaAPI to retrieve nutritional values for dishes and aggregate them
+* Write a Dockerfile to wrap the server
+
+
+# Minor
+* Deal with request headers
+* Deal with badly formatted JSON input (See slide 14)
+* Deal with non-JSON input
+
+
+# Extra
+* Pytest
+* Separate to different modules (separate 'data' classes from REST implementation)
+* Uniformity with _ prefix
+* Type hints
+
+
+# Questions
+* Indexing of dishes. Can we reuse the same index?
+* Am I using the 'subresources' correctly?
+
