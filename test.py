@@ -145,20 +145,29 @@ assert response.text.rstrip() == '-5'
 post_dish('salad')
 post_dish('steak')
 post_dish('ice cream')
+print(f"Printing all existing dishes at this point:")
 print_res(get_all_dishes())
 
 
+# Adding a first meal
+print(f"Adding a meal. Should return 1")
 meals = root + '/meals'
 header = {'Content-Type': 'application/json'}
-payload = json.dumps({'name': 'basic', 'appetizer': 3, 'main': 4, 'dessert': 5})
-res = requests.post(meals, headers=header, data=payload)
+basic_meal = json.dumps({'name': 'basic', 'appetizer': 3, 'main': 4, 'dessert': 5})
+res = requests.post(meals, headers=header, data=basic_meal)
 print_res(res)
 
-res = requests.get(meals, headers=header)
+# Test: Getting all meals. Should have a single 'basic' meal.
+def get_all_meals():
+    return requests.get(meals, headers=header)
+
+print(f"Printing all available meals:")
+res = get_all_meals()
 print(res.json())
 print()
 
 
+# 
 def get_meal(identifier):
     return requests.get(meals + '/' + identifier)
 
@@ -187,13 +196,66 @@ print_res(res)
 print()
 
 
-# Add and delete a meal by name
-print(f"Adding and deleting an 'alt' meal")
+print(f"Adding a couple of new dishes and another meal")
 post_dish('bread')
 post_dish('steak')
 post_dish('souffle')
 alt_dish = json.dumps({'name': 'alt', 'appetizer': 6, 'main': 7, 'dessert': 8})
 res = requests.post(meals, headers=header, data=alt_dish)
+
+
+# List meals
+print(f"Listing all available meals:")
+res = get_all_meals()
+print(res.json())
+print()
+
+
+# Add and delete a meal by name
+print(f"Deleting an 'alt' meal. Should return 2 (index of 'alt' meal)")
 res = delete_meal('alt')
 print_res(res)
 print()
+
+
+# Following tests should all return -5 and code 404
+# TODO: Test for getting a meal with invalid id
+# TODO: Test for getting a meal with invalid name
+# TODO: Test for deleting a meal with invalid id
+# TODO: Test for deleting a meal with invalid name
+
+
+# re-adding 'basic' meal
+print(f"Adding the 'basic' meal again")
+res = requests.post(meals, headers=header, data=basic_meal)
+
+
+
+# List meals
+print(f"Listing all available meals:")
+res = get_all_meals()
+print(res.json())
+print()
+
+
+
+
+def update_meal(idx, name, appetizer, main, dessert):
+    load = json.dumps({'name': name, 'appetizer': appetizer, 'main': main, 'dessert': dessert})
+    return requests.put(meals + '/' + idx, headers=header, data=load)
+
+# Updating an existing meal with put
+print(f"Updating the 'basic' meal")
+res = update_meal('3', 'basic_updated', 3, 4, 8)
+print_res(res)
+print()
+
+
+# TODO: Test for updating a meal with invalid index
+
+print(f"Printing all available meals")
+res = get_all_meals()
+print_res(res)
+print()
+res = requests.post(meals, headers=header, data=basic_meal)
+

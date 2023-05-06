@@ -200,6 +200,13 @@ class Meal:
     def get_as_dict(self):
         return {'name': self.get_name(), 'ID': self.get_idx(), 'appetizer': self.appetizer, 'main': self.main, 'dessert': self.dessert, 'cal': 9, 'sodium': 9, 'sugar': 9}
 
+    def update(self, name, appetizer, main, dessert):
+        print(f"Updating dish from {self.name} {self.appetizer} {self.main} {self.dessert} to {name} {appetizer} {main} {dessert} ")
+        self.name = name
+        self.appetizer = appetizer
+        self.main = main
+        self.dessert = dessert
+
 
 class MealsCollection:
     """Class representing a collection of meals"""
@@ -273,31 +280,51 @@ class Meals(Resource):
         return meals, 200
 
 
+
 class MealsId(Resource):
     """Class for the REST API of means/name"""
 
-    def get(self, idx):
+    def get(self, idx):  # TODO: Add failure. reponse -5, code 404
         meal = meals_collection.get_meal_by_idx(idx).get_as_dict()  # TODO: Except KeyError
         print(f"Retrieved a meal by the meals/id resource for idx {idx}: {meal}")
         return meal, 200
 
-    def delete(self, idx):
+    def delete(self, idx):  # TODO: Add failure. reponse -5, code 404
         meals_collection.delete_meal_by_idx(idx)
         return idx, 200
 
     def put(self, idx):
-        raise NotImplementedError  # TODO: Should return status 200
+        print(f"meals/id/put invoked")
+        parser = reqparse.RequestParser()
+        parser.add_argument('name', required=True)
+        parser.add_argument('appetizer', required=True, type=int)
+        parser.add_argument('main', required=True, type=int)
+        parser.add_argument('dessert', required=True, type=int)
+        args = parser.parse_args()
+        print(args)
+        try:
+            name = args['name']
+            appetizer = args['appetizer']
+            main = args['main']
+            dessert = args['dessert']
+            print(f"Updating a meal. Name: {name}, idx: {idx}, appetizer: {appetizer}, dessert: {dessert}")
+            meal = meals_collection.get_meal_by_idx(idx)
+            meal.update(name, appetizer, main, dessert)
+            return idx, 200
+        except KeyError as e:  # TODO: What errors may we catch here? How to handle them?
+            print(f"Invalid key: {e}")
+            return -6, 422  # Verify this is correct for the `put` API
 
 
 class MealsName(Resource):
     """Class for the REST API of means/name"""
 
-    def get(self, name):
+    def get(self, name):  # TODO: Add failure. reponse -5, code 404
         meal = meals_collection.get_meal_by_name(name).get_as_dict()
         print(f"Retrieved a meal by the meals/name resource for name {name}: {meal}")
         return meal, 200
 
-    def delete(self, name):
+    def delete(self, name):  # TODO: Add failure. reponse -5, code 404
         idx = meals_collection.delete_meal_by_name(name)  # TODO: Except ----
         return idx, 200
 

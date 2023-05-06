@@ -1,8 +1,9 @@
 # Major
-* Add Meals classes and resources
-* Use ninjaAPI to retrieve nutritional values for dishes and aggregate them
+* Update meal's nutritional values
+* Deal with failures for the meals resource
 * Write a Dockerfile to wrap the server
-
+* How do we pass the API-Ninja API Key to the docker?
+* Deal with the effect of deleting dishes on meals that already exist
 
 # Minor
 * Deal with request headers
