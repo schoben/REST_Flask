@@ -152,8 +152,11 @@ class Meal:
         self.main = main  # Using idx instead of obj: dishes_collection.get_dish_by_idx(main)
         self.dessert = dessert  # Using idx instead of obj: dishes_collection.get_dish_by_idx(dessert)
 
+    def get_name(self):
+        return self.name
+
     def get_as_dict(self):
-        return {'name': self.name, 'ID': self.id, 'appetizer': self.appetizer, 'main': self.main, 'dessert': self.dessert, 'cal': 9, 'sodium': 9, 'sugar': 9}
+        return {'name': self.get_name(), 'ID': self.id, 'appetizer': self.appetizer, 'main': self.main, 'dessert': self.dessert, 'cal': 9, 'sodium': 9, 'sugar': 9}
 
 
 class MealsCollection:
@@ -172,6 +175,19 @@ class MealsCollection:
     def get_all_meals(self):
         meals_json = {idx: meal.get_as_dict() for idx, meal in self.meals.items()}
         return meals_json
+
+    def get_meal_by_idx(self, lookup_idx):
+        for idx, meal in self.meals.items():
+            if idx == lookup_idx:
+                return meal
+        raise ValueError(f"Couldn't find a dish indexed as {loopup_idx}")
+
+    def get_meal_by_name(self, name):
+        for _, meal in self.meals.items():  # TODO: Use .values() instead of .items()
+            if meal.get_name() == name:
+                return meal
+        raise ValueError(f"Couldn't find a dish named {name}")
+
 
 meals_collection = MealsCollection()
 
@@ -211,7 +227,9 @@ class MealsId(Resource):
     """Class for the REST API of means/name"""
 
     def get(self, idx):
-        raise NotImplementedError
+        meal = meals_collection.get_meal_by_idx(idx).get_as_dict()
+        print(f"Retrieved a meal by the meals/id resource for idx {idx}: {meal}")
+        return meal, 200
 
     def delete(self, idx):
         raise NotImplementedError
@@ -224,7 +242,9 @@ class MealsName(Resource):
     """Class for the REST API of means/name"""
 
     def get(self, name):
-        raise NotImplementedError
+        meal = meals_collection.get_meal_by_name(name).get_as_dict()
+        print(f"Retrieved a meal by the meals/name resource for name {name}: {meal}")
+        return meal, 200
 
     def delete(self, name):
         raise NotImplementedError

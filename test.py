@@ -156,3 +156,21 @@ print_res(res)
 
 res = requests.get(meals, headers=header)
 print(res.json())
+print()
+
+
+def get_meal(identifier):
+    return requests.get(meals + '/' + identifier)
+
+# Getting a meal by index
+print(f"Getting meal of index 1")
+res = get_meal('1')
+print_res(res)
+print()
+
+
+# Getting a meal by name
+print(f"Getting meal by name 'basic'")
+res = get_meal('basic')
+print_res(res)
+print()
