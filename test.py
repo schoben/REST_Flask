@@ -150,7 +150,9 @@ print_res(get_all_dishes())
 
 meals = root + '/meals'
 header = {'Content-Type': 'application/json'}
-payload = json.dumps({'name': 'basic', 'appetizer': 3, 'main': 4, 'desert': 5})
+payload = json.dumps({'name': 'basic', 'appetizer': 3, 'main': 4, 'dessert': 5})
 res = requests.post(meals, headers=header, data=payload)
 print_res(res)
 
+res = requests.get(meals, headers=header)
+print(res.json())

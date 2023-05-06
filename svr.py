@@ -143,12 +143,17 @@ class DishesName(Resource):
 
 
 class Meal:
-    """Class representing a Meal consisting of appetizer, main and desert"""
+    """Class representing a Meal consisting of appetizer, main and dessert"""
 
-    def __init__(self, name, appetizer, main, desert):
-        self.appetizer = dishes_collection.get_dish_by_idx(appetizer)
-        self.main = dishes_collection.get_dish_by_idx(main)
-        self.desert = dishes_collection.get_dish_by_idx(desert)
+    def __init__(self, name, id, appetizer, main, dessert):
+        self.name = name
+        self.id = id
+        self.appetizer = appetizer  # Using idx instead of obj: dishes_collection.get_dish_by_idx(appetizer)
+        self.main = main  # Using idx instead of obj: dishes_collection.get_dish_by_idx(main)
+        self.dessert = dessert  # Using idx instead of obj: dishes_collection.get_dish_by_idx(dessert)
+
+    def get_as_dict(self):
+        return {'name': self.name, 'ID': self.id, 'appetizer': self.appetizer, 'main': self.main, 'dessert': self.dessert, 'cal': 9, 'sodium': 9, 'sugar': 9}
 
 
 class MealsCollection:
@@ -158,11 +163,15 @@ class MealsCollection:
         self.num_of_meals = 0
         self.meals = dict()
 
-    def add_meal(self, meal):
-        self.num_of_meals += 1  # No concurrency support
+    def add_meal(self, name, appetizer, main, dessert):
+        self.num_of_meals += 1  # No concurrency support.  # TODO: failing to create a meal with result in an unused idx
+        meal = Meal(name, self.num_of_meals, appetizer, main, dessert)
         self.meals[self.num_of_meals] = meal
         return self.num_of_meals  # The index of the meal
 
+    def get_all_meals(self):
+        meals_json = {idx: meal.get_as_dict() for idx, meal in self.meals.items()}
+        return meals_json
 
 meals_collection = MealsCollection()
 
@@ -176,23 +185,26 @@ class Meals(Resource):
         parser.add_argument('name', required=True)
         parser.add_argument('appetizer', required=True, type=int)
         parser.add_argument('main', required=True, type=int)
-        parser.add_argument('desert', required=True, type=int)
+        parser.add_argument('dessert', required=True, type=int)
         args = parser.parse_args()
         print(args)
         try:
             name = args['name']
             appetizer = args['appetizer']
             main = args['main']
-            desert = args['desert']
-            print(f"Adding a dish. Name: {name}, appetizer: {appetizer}, desert: {desert}")
+            dessert = args['dessert']
+            print(f"Adding a meal. Name: {name}, appetizer: {appetizer}, dessert: {dessert}")
             print(dishes_collection._get_all_dishes())
-            meal = Meal(name, appetizer, main, desert)
-            idx = meals_collection.add_meal(meal)
-            return idx, 200
+            idx = meals_collection.add_meal(name, appetizer, main, dessert)
+            return idx, 201
         except KeyError as e:
             print(f"Invalid key: {e}")
-            return -1, 422  # TODO: update this according to instructions
+            return -6, 422
 
+    def get(self):
+        print(f"Getting all meals")
+        meals = meals_collection.get_all_meals()
+        return meals
 
 # Adding resources to the Flask app API
 api.add_resource(Dishes, '/dishes')
