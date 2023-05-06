@@ -204,13 +204,39 @@ class Meals(Resource):
     def get(self):
         print(f"Getting all meals")
         meals = meals_collection.get_all_meals()
-        return meals
+        return meals, 200
+
+
+class MealsId(Resource):
+    """Class for the REST API of means/name"""
+
+    def get(self, idx):
+        raise NotImplementedError
+
+    def delete(self, idx):
+        raise NotImplementedError
+
+    def put(self, idx):
+        raise NotImplementedError  # TODO: Should return status 200
+
+
+class MealsName(Resource):
+    """Class for the REST API of means/name"""
+
+    def get(self, name):
+        raise NotImplementedError
+
+    def delete(self, name):
+        raise NotImplementedError
+
 
 # Adding resources to the Flask app API
 api.add_resource(Dishes, '/dishes')
 api.add_resource(DishesId, '/dishes/<int:idx>')
 api.add_resource(DishesName, '/dishes/<string:name>')
 api.add_resource(Meals, '/meals')
+api.add_resource(MealsId, '/meals/<int:idx>')
+api.add_resource(MealsName, '/meals/<string:name>')
 
 if __name__ == '__main__':
     print(f"Running Meals&Dishes server ({__file__})")
