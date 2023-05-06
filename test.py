@@ -62,7 +62,7 @@ def verify_res(res, json, code):
 
 
 
-# Tests
+# Dishes Tests
 
 print(f"Test 1#: getting all dishes. Should return empty dict")
 res = get_all_dishes()
@@ -123,7 +123,7 @@ verify_res_code(res, 200)
 assert res.text.rstrip() == '2'
 
 
-print(f"Test 10#: Dleting a dish of index 3. Should return -5 with status 404.")
+print(f"Test 10#: Deleting a dish of index 3. Should return -5 with status 404.")
 response = delete_dish_by_idx('3')
 print_res(response)
 verify_res_code(response, 404)

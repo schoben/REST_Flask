@@ -3,22 +3,60 @@ Exercise 1# for Cloud Computing course
 Creating a server docker image implementing a REST API
 """
 
+# Built-in imports
+import os
+from collections import namedtuple
+
+# pip imports
 from flask import Flask  # , jsonify
 from flask_restful import Resource, Api, reqparse
+import requests
 
-
+# Setting up global variables
 app = Flask(__name__)  # initialize Flask
 api = Api(app)  # create API
+ninja_api_key = os.environ['NINJA_API_KEY']
+
+# Creating a namedtuple for storing dish values
+DishValues = namedtuple('DishValues', ['size', 'cal', 'sugar', 'sodium'])
 
 
-# TODO: Move these two classes to a separate module (decouple)
+# TODO: move following two function to a different module. Consider encapsulating in a class
+def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized)
+        api_url = 'https://api.api-ninjas.com/v1/nutrition?query={}'.format(query)
+        response = requests.get(api_url, headers={'X-Api-Key': ninja_api_key})
+        if response.status_code == requests.codes.ok:
+            return response.json()
+        else:
+            raise Exception("Error:", response.status_code, response.text)
+
+
+def parse_ninja(res):
+    size = 0
+    cal = 0
+    sugar = 0
+    sodium = 0
+    for dish_dict in res:
+        size += dish_dict['serving_size_g']
+        cal += dish_dict['calories']
+        sugar += dish_dict['sugar_g']
+        sodium += dish_dict['sodium_mg']
+    return DishValues(size=size, cal=cal, sugar=sugar, sodium=sodium)
+
+
+# TODO: Move these two classes to a separate module (decouple), together with Meal and MealsCollection
 class Dish:
     """Class representing a single dish"""
 
     def __init__(self, name, idx):
         self.idx = idx
         self.name = name
-        # TODO: Use ninja API to get and set the variables (cal, size, sodium, sugar). Raise an exception if needed
+        ninja_response = query_ninja(self.name)
+        dish_vals = parse_ninja(ninja_response)
+        self.size = dish_vals.size
+        self.cal = dish_vals.cal
+        self.sugar = dish_vals.sugar
+        self.sodium = dish_vals.sodium
 
     def _get_idx(self):
         return self.idx
@@ -27,7 +65,8 @@ class Dish:
         return self.name
 
     def get_as_dict(self):
-        return {'name': self.name, 'id': self.idx, 'cal': 10, 'size': 10, 'sodium': 10, 'sugar': 10}  # TODO
+        return {'name': self.name, 'id': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
+
 
 
 class DishesCollection:
