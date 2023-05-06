@@ -162,6 +162,10 @@ print()
 def get_meal(identifier):
     return requests.get(meals + '/' + identifier)
 
+def delete_meal(identifier):
+    return requests.delete(meals + '/' + identifier)
+
+
 # Getting a meal by index
 print(f"Getting meal of index 1")
 res = get_meal('1')
@@ -172,5 +176,24 @@ print()
 # Getting a meal by name
 print(f"Getting meal by name 'basic'")
 res = get_meal('basic')
+print_res(res)
+print()
+
+
+# Delete meal by index
+print(f"Deleteing meal of index 1")
+res = delete_meal('1')
+print_res(res)
+print()
+
+
+# Add and delete a meal by name
+print(f"Adding and deleting an 'alt' meal")
+post_dish('bread')
+post_dish('steak')
+post_dish('souffle')
+alt_dish = json.dumps({'name': 'alt', 'appetizer': 6, 'main': 7, 'dessert': 8})
+res = requests.post(meals, headers=header, data=alt_dish)
+res = delete_meal('alt')
 print_res(res)
 print()

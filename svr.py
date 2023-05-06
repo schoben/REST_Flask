@@ -145,9 +145,9 @@ class DishesName(Resource):
 class Meal:
     """Class representing a Meal consisting of appetizer, main and dessert"""
 
-    def __init__(self, name, id, appetizer, main, dessert):
+    def __init__(self, name, idx, appetizer, main, dessert):
         self.name = name
-        self.id = id
+        self.idx = idx
         self.appetizer = appetizer  # Using idx instead of obj: dishes_collection.get_dish_by_idx(appetizer)
         self.main = main  # Using idx instead of obj: dishes_collection.get_dish_by_idx(main)
         self.dessert = dessert  # Using idx instead of obj: dishes_collection.get_dish_by_idx(dessert)
@@ -155,8 +155,11 @@ class Meal:
     def get_name(self):
         return self.name
 
+    def get_idx(self):
+        return self.idx
+
     def get_as_dict(self):
-        return {'name': self.get_name(), 'ID': self.id, 'appetizer': self.appetizer, 'main': self.main, 'dessert': self.dessert, 'cal': 9, 'sodium': 9, 'sugar': 9}
+        return {'name': self.get_name(), 'ID': self.get_idx(), 'appetizer': self.appetizer, 'main': self.main, 'dessert': self.dessert, 'cal': 9, 'sodium': 9, 'sugar': 9}
 
 
 class MealsCollection:
@@ -176,17 +179,25 @@ class MealsCollection:
         meals_json = {idx: meal.get_as_dict() for idx, meal in self.meals.items()}
         return meals_json
 
-    def get_meal_by_idx(self, lookup_idx):
-        for idx, meal in self.meals.items():
-            if idx == lookup_idx:
-                return meal
-        raise ValueError(f"Couldn't find a dish indexed as {loopup_idx}")
+    def get_meal_by_idx(self, idx):
+        return self.meals[idx]
 
     def get_meal_by_name(self, name):
+        print(f"Looking for meal named {name} in {len(self.meals.keys())} meals..")
         for _, meal in self.meals.items():  # TODO: Use .values() instead of .items()
             if meal.get_name() == name:
                 return meal
-        raise ValueError(f"Couldn't find a dish named {name}")
+        raise ValueError(f"Couldn't find a meal named {name}")
+
+    def delete_meal_by_idx(self, idx):
+        meal = self.meals.pop(idx)
+        del meal
+
+    def delete_meal_by_name(self, name):
+        meal = self.get_meal_by_name(name)
+        idx = meal.get_idx()
+        del self.meals[idx]
+        return idx
 
 
 meals_collection = MealsCollection()
@@ -227,12 +238,13 @@ class MealsId(Resource):
     """Class for the REST API of means/name"""
 
     def get(self, idx):
-        meal = meals_collection.get_meal_by_idx(idx).get_as_dict()
+        meal = meals_collection.get_meal_by_idx(idx).get_as_dict()  # TODO: Except KeyError
         print(f"Retrieved a meal by the meals/id resource for idx {idx}: {meal}")
         return meal, 200
 
     def delete(self, idx):
-        raise NotImplementedError
+        meals_collection.delete_meal_by_idx(idx)
+        return idx, 200
 
     def put(self, idx):
         raise NotImplementedError  # TODO: Should return status 200
@@ -247,7 +259,8 @@ class MealsName(Resource):
         return meal, 200
 
     def delete(self, name):
-        raise NotImplementedError
+        idx = meals_collection.delete_meal_by_name(name)  # TODO: Except ----
+        return idx, 200
 
 
 # Adding resources to the Flask app API
