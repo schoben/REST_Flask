@@ -293,8 +293,11 @@ class MealsId(Resource):
             return -5, 404
 
     def delete(self, idx):  # TODO: Add failure. reponse -5, code 404
-        meals_collection.delete_meal_by_idx(idx)
-        return idx, 200
+        try:
+            meals_collection.delete_meal_by_idx(idx)
+            return idx, 200
+        except KeyError:
+            return -5, 404
 
     def put(self, idx):
         print(f"meals/id/put invoked")
@@ -331,9 +334,11 @@ class MealsName(Resource):
             return -5, 404
 
     def delete(self, name):  # TODO: Add failure. reponse -5, code 404
-        idx = meals_collection.delete_meal_by_name(name)  # TODO: Except ----
-        return idx, 200
-
+        try:
+            idx = meals_collection.delete_meal_by_name(name)  # TODO: Except ----
+            return idx, 200
+        except ValueError:
+            return -5, 404
 
 # Adding resources to the Flask app API
 api.add_resource(Dishes, '/dishes')

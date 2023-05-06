@@ -1,6 +1,5 @@
 # Major
 * Update meal's nutritional values
-* Deal with failures for the meals resource
 * Use integer for the endpoint when using ID
 * Write a Dockerfile to wrap the server
 * How do we pass the API-Ninja API Key to the docker?

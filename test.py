@@ -232,11 +232,19 @@ print_res(res)
 print()
 
 
+# Test for getting a meal with invalid id
+print(f"Testing meals/get on invalid index. Should return -5 and code 404")
+res = delete_meal('7')
+print_res(res)
+print()
 
 
-# Following tests should all return -5 and code 404
-# TODO: Test for deleting a meal with invalid id
-# TODO: Test for deleting a meal with invalid name
+# Test for getting a meal with invalid name
+print(f"Testing meals/get on invalid name. Should return -5 and code 404")
+res = delete_meal('Italian Monday')
+print_res(res)
+print()
+
 
 
 # re-adding 'basic' meal
