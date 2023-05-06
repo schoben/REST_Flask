@@ -323,9 +323,12 @@ class MealsName(Resource):
     """Class for the REST API of means/name"""
 
     def get(self, name):  # TODO: Add failure. reponse -5, code 404
-        meal = meals_collection.get_meal_by_name(name).get_as_dict()
-        print(f"Retrieved a meal by the meals/name resource for name {name}: {meal}")
-        return meal, 200
+        try:
+            meal = meals_collection.get_meal_by_name(name).get_as_dict()
+            print(f"Retrieved a meal by the meals/name resource for name {name}: {meal}")
+            return meal, 200
+        except ValueError:
+            return -5, 404
 
     def delete(self, name):  # TODO: Add failure. reponse -5, code 404
         idx = meals_collection.delete_meal_by_name(name)  # TODO: Except ----

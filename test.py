@@ -225,8 +225,16 @@ print_res(res)
 print()
 
 
+# Test for getting a meal with invalid name
+print(f"Testing meals/get on invalid name. Should return -5 and code 404")
+res = get_meal('Italian Monday')
+print_res(res)
+print()
+
+
+
+
 # Following tests should all return -5 and code 404
-# TODO: Test for getting a meal with invalid name
 # TODO: Test for deleting a meal with invalid id
 # TODO: Test for deleting a meal with invalid name
 
