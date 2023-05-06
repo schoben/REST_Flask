@@ -1,8 +1,5 @@
 """
 Client module for testing
-
-TODO:
-* Typing
 """
 
 
@@ -157,9 +154,11 @@ basic_meal = json.dumps({'name': 'basic', 'appetizer': 3, 'main': 4, 'dessert': 
 res = requests.post(meals, headers=header, data=basic_meal)
 print_res(res)
 
+
 # Test: Getting all meals. Should have a single 'basic' meal.
 def get_all_meals():
     return requests.get(meals, headers=header)
+
 
 print(f"Printing all available meals:")
 res = get_all_meals()
@@ -167,7 +166,6 @@ print(res.json())
 print()
 
 
-# 
 def get_meal(identifier):
     return requests.get(meals + '/' + identifier)
 
@@ -196,12 +194,28 @@ print_res(res)
 print()
 
 
-print(f"Adding a couple of new dishes and another meal")
-post_dish('bread')
-post_dish('steak')
-post_dish('souffle')
+print(f"Adding a bread dish")
+res = post_dish('bread')
+print_res(res)
+print()
+
+
+print("Adding a steak dish")
+res = post_dish('shnitzel')
+print_res(res)
+print()
+
+print("Adding a souffle dish")
+res = post_dish('souffle')
+print_res(res)
+print()
+
+
 alt_dish = json.dumps({'name': 'alt', 'appetizer': 6, 'main': 7, 'dessert': 8})
+print(f"Addint a second meal: {alt_dish}")
 res = requests.post(meals, headers=header, data=alt_dish)
+print_res(res)
+print()
 
 
 # List meals
@@ -246,11 +260,9 @@ print_res(res)
 print()
 
 
-
 # re-adding 'basic' meal
 print(f"Adding the 'basic' meal again")
 res = requests.post(meals, headers=header, data=basic_meal)
-
 
 
 # List meals
@@ -260,11 +272,10 @@ print(res.json())
 print()
 
 
-
-
 def update_meal(idx, name, appetizer, main, dessert):
     load = json.dumps({'name': name, 'appetizer': appetizer, 'main': main, 'dessert': dessert})
     return requests.put(meals + '/' + idx, headers=header, data=load)
+
 
 # Updating an existing meal with put
 print(f"Updating the 'basic' meal")
@@ -273,11 +284,16 @@ print_res(res)
 print()
 
 
-# TODO: Test for updating a meal with invalid index
-
 print(f"Printing all available meals")
 res = get_all_meals()
 print_res(res)
 print()
 res = requests.post(meals, headers=header, data=basic_meal)
+
+
+# Updating an invalid meal with put
+print(f"Updating a non-existing meal")
+res = update_meal('7', 'basic_updated', 3, 4, 8)
+print_res(res)
+print()
 

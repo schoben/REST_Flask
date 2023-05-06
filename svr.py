@@ -64,6 +64,15 @@ class Dish:
     def _get_name(self):  # TODO: Use property instead of getter
         return self.name
 
+    def get_cal(self):
+        return self.cal
+
+    def get_sugar(self):
+        return self.sugar
+
+    def get_sodium(self):
+        return self.sodium
+
     def get_as_dict(self):
         return {'name': self.name, 'id': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
 
@@ -187,9 +196,23 @@ class Meal:
     def __init__(self, name, idx, appetizer, main, dessert):
         self.name = name
         self.idx = idx
-        self.appetizer = appetizer  # Using idx instead of obj: dishes_collection.get_dish_by_idx(appetizer)
-        self.main = main  # Using idx instead of obj: dishes_collection.get_dish_by_idx(main)
-        self.dessert = dessert  # Using idx instead of obj: dishes_collection.get_dish_by_idx(dessert)
+        self.appetizer = appetizer
+        self.main = main
+        self.dessert = dessert
+        self.update_nutritional_vals()
+
+    def update_nutritional_vals(self):
+        self.cal = 0
+        self.sugar = 0
+        self.sodium = 0
+        for dish_idx in [self.appetizer, self.main, self.dessert]:
+            try:
+                dish = dishes_collection.get_dish_by_idx(dish_idx)
+                self.cal += dish.get_cal()
+                self.sugar += dish.get_sugar()
+                self.sodium += dish.get_sodium()
+            except Exception as e:  # Narrow down exception type
+                raise e
 
     def get_name(self):
         return self.name
@@ -198,7 +221,7 @@ class Meal:
         return self.idx
 
     def get_as_dict(self):
-        return {'name': self.get_name(), 'ID': self.get_idx(), 'appetizer': self.appetizer, 'main': self.main, 'dessert': self.dessert, 'cal': 9, 'sodium': 9, 'sugar': 9}
+        return {'name': self.get_name(), 'ID': self.get_idx(), 'appetizer': self.appetizer, 'main': self.main, 'dessert': self.dessert, 'cal': self.cal, 'sodium': self.sodium, 'sugar': self.sugar}
 
     def update(self, name, appetizer, main, dessert):
         print(f"Updating dish from {self.name} {self.appetizer} {self.main} {self.dessert} to {name} {appetizer} {main} {dessert} ")
