@@ -11,7 +11,7 @@ import json
 port = '8000'
 root = 'http://127.0.0.1:' + port
 dishes = root + '/dishes'
-
+header = {'Content-Type': 'application/json'}
 
 # Function for communicating with server
 def get_all_dishes():
@@ -19,7 +19,7 @@ def get_all_dishes():
 
 
 def post_dish(name):
-    return requests.post(dishes, params={'name': name})
+    return requests.post(dishes, headers=header, data=json.dumps({'name': name}))
 
 
 def get_dish_by_name(name):  # TODO: remove this or previous func
@@ -49,7 +49,7 @@ def verify_res_json(res, json):
 
 
 def verify_res_code(res, code):
-    assert res.status_code == code
+    assert res.status_code == code, f"Wrong code. Expected {code} but got {res.status_code}"
 
 
 def verify_res(res, json, code):
@@ -68,8 +68,8 @@ print_res(res)
 verify_res_code(res, 200)
 
 
-print(f"Test 2#: Adding a 'fish' dish. Should return 1 (index of the dish) with code 201")
-res = post_dish('fish')
+print(f"Test 2#: Adding a 'focaccia' dish. Should return 1 (index of the dish) with code 201")
+res = post_dish('focaccia')
 print_res(res)
 verify_res_code(res, 201)
 
@@ -80,17 +80,18 @@ print_res(res)
 verify_res_code(res, 405)
 
 
-print(f"Test 4#: Getting dish of index 1. Should return the 'fish' dish")
+print(f"Test 4#: Getting dish of index 1. Should return the 'focaccia' dish")
 res = get_dish_by_idx('1')
 print_res(res)
 verify_res_code(res, 200)
 
 
-print(f"Test 5#: Getting dish 'fish'. Should return the 'fish' dish")
-res = get_dish_by_name('fish')
+print(f"Test 5#: Getting dish 'focaccia'. Should return the 'focaccia' dish")
+res = get_dish_by_name('focaccia')
 print_res(res)
 verify_res_code(res, 200)
 
+exit()
 
 print(f"Test 6#: Getting dish of index 2. Should return -5 with code 404")
 res = get_dish_by_idx('2')

@@ -132,7 +132,7 @@ class Dishes(Resource):
     def post(self):
         # TODO: verify the JSON header. return 0 and status 415 (slide 13)
         parser = reqparse.RequestParser()
-        parser.add_argument('name', location='args', required=True)  # location='args' is required, at least on macOS
+        parser.add_argument('name', required=True)
         args = parser.parse_args()
         try:
             dish_name = args['name']
