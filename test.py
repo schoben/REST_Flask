@@ -8,7 +8,8 @@ import json
 
 
 # Sources paths
-root = 'http://127.0.0.1:5002'
+port = '8000'
+root = 'http://127.0.0.1:' + port
 dishes = root + '/dishes'
 
 

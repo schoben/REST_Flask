@@ -358,7 +358,7 @@ class MealsName(Resource):
 
     def delete(self, name):  # TODO: Add failure. reponse -5, code 404
         try:
-            idx = meals_collection.delete_meal_by_name(name)  # TODO: Except ----
+            idx = meals_collection.delete_meal_by_name(name)
             return idx, 200
         except ValueError:
             return -5, 404
@@ -373,5 +373,4 @@ api.add_resource(MealsName, '/meals/<string:name>')
 
 if __name__ == '__main__':
     print(f"Running Meals&Dishes server ({__file__})")
-    app.run(port=5002)  # TODO: read port from cfg/argsparser
 
