@@ -160,12 +160,14 @@ class DishesId(Resource):
     """RESTful API for dealing with dishes/id resources"""
 
     def get(self, idx):
+        idx = int(idx)
         try:
             return dishes_collection.get_dish_by_idx(idx).get_as_dict(), 200
         except KeyError:
             return -5, 404
 
     def delete(self, idx):
+        idx = int(idx)
         try:
             dishes_collection.delete_dish_by_idx(idx)
             return idx, 200
@@ -331,6 +333,9 @@ class MealsId(Resource):
     """Class for the REST API of means/name"""
 
     def get(self, idx):  # TODO: Add failure. reponse -5, code 404
+        idx = int(idx)
+        print('MealsId Get invoked')
+        print(type(idx))
         try:
             meal = meals_collection.get_meal_by_idx(idx).get_as_dict()  # TODO: Except KeyError
             print(f"Retrieved a meal by the meals/id resource for idx {idx}: {meal}")
@@ -346,6 +351,7 @@ class MealsId(Resource):
             return -5, 404
 
     def put(self, idx):
+        idx = int(idx)
         print(f"meals/id/put invoked")
         parser = reqparse.RequestParser()
         parser.add_argument('name', required=True)
