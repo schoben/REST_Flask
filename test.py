@@ -114,6 +114,12 @@ verify_res_code(res, 200)
 assert res.text.rstrip() == '1'
 
 
+print("Dish list should now be empty")
+res = get_all_dishes()
+print_res(res)
+verify_res_code(res, 200)
+
+
 print(f"Test 9#: Adding and deleting a dish 'chicken'. Should return code 200 and value 2 (the index of chicken)")
 post_dish('chicken')
 res = delete_dish_by_name('chicken')
@@ -202,8 +208,8 @@ print_res(res)
 print()
 
 
-print("Adding a steak dish")
-res = post_dish('shnitzel')
+print("Adding a hamburger dish")
+res = post_dish('hamburger')
 print_res(res)
 print()
 
@@ -214,14 +220,14 @@ print()
 
 
 alt_dish = json.dumps({'name': 'alt', 'appetizer': 6, 'main': 7, 'dessert': 8})
-print(f"Addint a second meal: {alt_dish}")
+print(f"Adding an 'alt' meal: {alt_dish}")
 res = requests.post(meals, headers=header, data=alt_dish)
 print_res(res)
 print()
 
 
 # List meals
-print(f"Listing all available meals:")
+print(f"Listing all available meals. Should contain an 'alt' meal only.")
 res = get_all_meals()
 print(res.json())
 print()
