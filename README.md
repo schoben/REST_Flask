@@ -12,6 +12,8 @@ We implement a simple Flask server for creating and getting Dishes and Meals
 
 ## Using the server
 * You can see the test.py with a usage example with some tests
+* It is suggested you create a virtual environment for running the test
+* You will need to have the `requests` library installed
 
 ## Running the server with a different port
 * Build with specifying the port: `docker build -t flask .  --build-arg port=3000`
