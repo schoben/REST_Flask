@@ -11,6 +11,7 @@ import json
 port = '8000'
 root = 'http://127.0.0.1:' + port
 dishes = root + '/dishes'
+header = {'Content-Type': 'application/json'}
 
 
 # Function for communicating with server
@@ -19,7 +20,7 @@ def get_all_dishes():
 
 
 def post_dish(name):
-    return requests.post(dishes, params={'name': name})
+    return requests.post(dishes, headers=header, data=json.dumps({'name': name}))
 
 
 def get_dish_by_name(name):  # TODO: remove this or previous func

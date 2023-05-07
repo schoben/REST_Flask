@@ -91,6 +91,12 @@ res = get_dish_by_name('focaccia')
 print_res(res)
 verify_res_code(res, 200)
 
+
+res = requests.post(dishes, headers=header, data=json.dumps({'nam': 'focaccia'}))
+print_res(res)
+verify_res_code(res, 422)
+print()
+
 exit()
 
 print(f"Test 6#: Getting dish of index 2. Should return -5 with code 404")

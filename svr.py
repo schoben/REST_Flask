@@ -132,12 +132,11 @@ class Dishes(Resource):
     def post(self):
         # TODO: verify the JSON header. return 0 and status 415 (slide 13)
         parser = reqparse.RequestParser()
-        parser.add_argument('name', required=True)
+        parser.add_argument('name')
         args = parser.parse_args()
-        try:
-            dish_name = args['name']
-        except KeyError:
-            return -1, 422  # No dish name supplied
+        dish_name = args['name']
+        if dish_name is None: 
+            return -1, 422
         if dishes_collection.dish_exists(dish_name):
             return -2, 422  # Dish name already exists
         try:
