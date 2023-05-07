@@ -25,6 +25,9 @@ DishValues = namedtuple('DishValues', ['size', 'cal', 'sugar', 'sodium'])
 def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized)
         api_url = 'https://api.api-ninjas.com/v1/nutrition?query={}'.format(query)
         response = requests.get(api_url, headers={'X-Api-Key': ninja_api_key})
+        print(f"Got the following response from Ninja: {response} {response.json()}")
+        if response.json() == []:
+            raise ValueError("API-Ninja couldn't parse dish named {query}")
         if response.status_code == requests.codes.ok:
             return response.json()
         else:
@@ -105,9 +108,9 @@ class DishesCollection:
             return False
 
     def add_dish(self, name):
-        self.num_of_dishes += 1  # No support for concurrency
         print(f"Adding to Dishes: name {name}, idx: {self.num_of_dishes}")
-        dish = Dish(name, self.num_of_dishes)
+        dish = Dish(name, self.num_of_dishes + 1)
+        self.num_of_dishes += 1  # No support for concurrency
         self.dishes[self.num_of_dishes] = dish
         return self.num_of_dishes
 
@@ -141,10 +144,10 @@ class Dishes(Resource):
             return -2, 422  # Dish name already exists
         try:
             idx = dishes_collection.add_dish(dish_name)
-        except Exception:  # Split to two types of exceptions
-            # Not recognized: return -3, status 400 (slide 15)
-            # Unreachable: return -4, status 504
-            raise NotImplementedError("Unexpected error (ninja?)")
+        except ValueError:
+            return -3, 422
+        except Exception:  # Specify Exception type
+            return -4, 504
         return idx, 201
 
     def delete(self):  # Can we simply remove this and get the same functionality?

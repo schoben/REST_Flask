@@ -41,15 +41,16 @@ def delete_dish_by_idx(idx):
 # Verification functions
 def print_res(res):
     print(res.json(), res)
-    print()
 
 
-def verify_res_json(res, json):
-    assert res.json() == json
+def verify_res_body(res, expected):
+    assert res.json() == expected, f"Wrong response. Expected {expected} but got {res.json()}"
+    print(f"passed body assertion")
 
 
 def verify_res_code(res, code):
     assert res.status_code == code, f"Wrong code. Expected {code} but got {res.status_code}"
+    print("passed code assertion")
 
 
 def verify_res(res, json, code):
@@ -72,6 +73,7 @@ print(f"Test 2#: Adding a 'focaccia' dish. Should return 1 (index of the dish) w
 res = post_dish('focaccia')
 print_res(res)
 verify_res_code(res, 201)
+verify_res_body(res, 1)
 
 
 print(f"Test 3#: Deleting the whole dishes resource. Should give an error with code 405")
@@ -96,6 +98,14 @@ res = requests.post(dishes, headers=header, data=json.dumps({'nam': 'focaccia'})
 print_res(res)
 verify_res_code(res, 422)
 print()
+
+
+res = post_dish('goo')
+print_res(res)
+verify_res_code(res, 422)
+verify_res_body(res, -3)
+print()
+
 
 exit()
 
