@@ -116,6 +116,7 @@ class DishesCollection:
 
     def delete_dish_by_idx(self, idx):
         dish = self.dishes.pop(idx)  # removing the dish from the DishesCollection
+        meals_collection.remove_dish(idx)
         del dish  # removing the deleted dish from memory
 
     def get_dish_idx_by_name(self, name):
@@ -208,6 +209,9 @@ class Meal:
         self.sugar = 0
         self.sodium = 0
         for dish_idx in [self.appetizer, self.main, self.dessert]:
+            if dish_idx is None:
+                print("Skipping dish nutritional values")
+                continue
             try:
                 dish = dishes_collection.get_dish_by_idx(dish_idx)
                 self.cal += dish.get_cal()
@@ -231,6 +235,19 @@ class Meal:
         self.appetizer = appetizer
         self.main = main
         self.dessert = dessert
+        self.update_nutritional_vals()
+
+    def remove_dish(self, idx):
+        if self.appetizer == idx:
+            print(f"Removing appetizer from meal! (idx: {idx})")
+            self.appetizer = None
+        if self.main == idx:
+            print(f"Removing main from meal! (idx: {idx})")
+            self.main = None
+        if self.dessert == idx:
+            print(f"Removing dessert from meal! (idx: {idx})")
+            self.dessert = None
+        self.update_nutritional_vals()
 
 
 class MealsCollection:
@@ -269,6 +286,10 @@ class MealsCollection:
         idx = meal.get_idx()
         del self.meals[idx]
         return idx
+
+    def remove_dish(self, idx):
+        for meal in self.meals.values():
+            meal.remove_dish(idx)
 
 
 meals_collection = MealsCollection()

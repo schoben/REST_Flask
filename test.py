@@ -310,7 +310,26 @@ res = post_dish("focaccia")
 print_res(res)
 print()
 
-print(f"Getting the focaccia dish")
-res = get_dish_by_name("focaccia")
+print(f"Getting the souffle dish")
+res = get_dish_by_name("souffle")
 print_res(res)
 print()
+
+print(f"Deleting a dish that is already a part of a meal")
+
+print(f"We delete the dessert of the 'basic_updated' meal")
+res = get_meal('basic_updated')
+print_res(res)
+print()
+
+print(f"We now delete dish with index 8")
+res = delete_dish_by_idx('8')
+print_res(res)
+print()
+
+print(f"Let's see how this affected the meal:")
+res = get_meal('basic_updated')
+print_res(res)
+print()
+
+
