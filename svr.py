@@ -11,27 +11,63 @@ from collections import namedtuple
 from flask import Flask  # , jsonify
 from flask_restful import Resource, Api, reqparse
 import requests
+import pymongo
+
 
 # Setting up global variables
+# TODO: extract to a function
 app = Flask(__name__)  # initialize Flask
 api = Api(app)  # create API
 ninja_api_key = os.environ['NINJA_API_KEY']
+client = pymongo.MongoClient("localhost", 27017)
+# initializing the database
+db = client["food"]
+
+dishes_col = db["dishes"]  # TODO: dish the dish
+meals_col = db["meals"]
+diets_col = db["diets"]
+counters_col = db["counter"]
+
+# Resetting database
+if False:
+    print(f"WARNING: Restting collections!")
+    dishes_col.drop()
+    meals_col.drop()
+    diets_col.drop()
+    counters_col.drop()
+
+# TODO export to a function
+# Initializing counters
+counters = counters_col.find_one({'_id': 0})
+if counters is None:
+    print("Couldn't find any counters! Initializing counters to 0")
+    counters_col.insert_one({'_id': 0, 'dishes': 0, 'meals': 0, 'diets': 0})
+else:
+    print(f"Found counters: {counters}")
+
+'''
+dishes_idx = counters.get('dishes', 0)
+meals_idx = counters.get('meals', 0)
+diets_idx = counters.get('diets', 0)
+mydict = {'_id': 0, 'dish_idx': dishes_idx, 'meals_idx': meals_idx, 'diets_idx': diets_idx}
+counter_col.insert_one(mydict)  # TODO: use update instead of insert
+'''
+
 
 # Creating a namedtuple for storing dish values
 DishValues = namedtuple('DishValues', ['size', 'cal', 'sugar', 'sodium'])
 
 
 # TODO: move following two function to a different module. Consider encapsulating in a class
-def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized)
-        api_url = 'https://api.api-ninjas.com/v1/nutrition?query={}'.format(query)
-        response = requests.get(api_url, headers={'X-Api-Key': ninja_api_key})
-        print(f"Got the following response from Ninja: {response} {response.json()}")
-        if response.json() == []:
-            raise ValueError("API-Ninja couldn't parse dish named {query}")
-        if response.status_code == requests.codes.ok:
-            return response.json()
-        else:
-            raise Exception("Error:", response.status_code, response.text)
+def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized) api_url = 'https://api.api-ninjas.com/v1/nutrition?query={}'.format(query)
+    response = requests.get(api_url, headers={'X-Api-Key': ninja_api_key}) 
+    print(f"Got the following response from Ninja: {response} {response.json()}")
+    if response.json() == []:
+        raise ValueError("API-Ninja couldn't parse dish named {query}")
+    if response.status_code == requests.codes.ok:
+        return response.json()
+    else:
+        raise Exception("Error:", response.status_code, response.text)
 
 
 def parse_ninja(res):
@@ -80,7 +116,6 @@ class Dish:
         return {'name': self.name, 'id': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
 
 
-
 class DishesCollection:
     """Collection class of all the dishes"""
 
@@ -101,6 +136,7 @@ class DishesCollection:
         raise ValueError(f"Couldn't find a dish that goes by the name {name}")
 
     def dish_exists(self, name):
+        '''func that checks if the dish exists in the db'''
         try:
             self.get_dish_by_name(name)
             return True
@@ -131,6 +167,53 @@ class Dishes(Resource):
     """A Class implementing a REST API for dealing with Dishes"""
 
     def get(self):
+        print(f"Getting all Dishes...")
+        # return dishes_collection._get_all_dishes(), 200
+        print(f"Returning the dishes collection: {dishes_col.find()}")  # TODO: make sure our format is fine
+        return list(dishes_col.find())
+
+    def post(self):
+        # TODO: verify the JSON header. return 0 and status 415 (slide 13)
+        print("Adding a dish")
+        parser = reqparse.RequestParser()
+        parser.add_argument('name')
+        args = parser.parse_args()
+        dish_name = args['name']
+        print(f"Dish name to add: {dish_name}")
+        if dish_name is None: 
+            return -1, 422
+        '''
+        TODO: requires implementation
+        if dishes_collection.dish_exists(dish_name):
+            return -2, 422  # Dish name already exists
+        '''
+        
+        try:
+            # idx = dishes_collection.add_dish(dish_name)
+            # TODO: make sure we refer to the right variable '_id'
+            print(f"Trying to add to mongo")
+
+            # Getting the index of current dish
+            idx = counters_col.find_one({"_id": 0})["dishes"]
+            result = dishes_col.insert_one({"_id": idx, "name": dish_name})
+            print(f"added the {dish_name} dish as index {idx}")
+            counters_col.update_one({"_id": 0}, {"$set": {'dishes': idx + 1}})
+            print(f"Updated the index")
+        except ValueError:
+            return -3, 422
+        except Exception as e:  # Specify Exception type
+            print(type(e), e)
+            return -4, 504
+        return idx, 201
+
+    def delete(self):  # Can we simply remove this and get the same functionality?
+        return "This method is not allowed for the requested URL", 405
+
+'''
+class Dishes(Resource):
+    """A Class implementing a REST API for dealing with Dishes"""
+
+    def get(self):
         return dishes_collection._get_all_dishes(), 200
 
     def post(self):
@@ -153,7 +236,7 @@ class Dishes(Resource):
 
     def delete(self):  # Can we simply remove this and get the same functionality?
         return "This method is not allowed for the requested URL", 405
-
+'''
 
 
 class DishesId(Resource):
@@ -402,4 +485,5 @@ api.add_resource(MealsName, '/meals/<string:name>')
 
 if __name__ == '__main__':
     print(f"Running Meals&Dishes server ({__file__})")
+    app.run(host='0.0.0.0', port=8000, debug=True)
 

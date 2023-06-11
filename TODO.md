@@ -1,3 +1,27 @@
+What to do next?
+
+
+* Change the ID and NAME resources of the dish collection to use mongo
+* Convert meals to use mongo DB
+* Implement the diets resource (in a separate module, e.g. diets.py)
+* Create a Dockerfile for the diets service
+* Update the meals service to communicate with the Diets service
+* Add nginx to the Docker-compose
+* Add building of the Dockerfiles to the docker-compose
+
+
+Also need:
+* Way to reset the mongo DB
+* Fix mistakes from ex1
+* Verify that it is possible to 'connect' to the containers so they can be killed (in testing)
+* Go over TODO statements and remove whatever we can
+* write some test
+
+
+
+
+### FROM EX1
+
 # Major
 * Deal with deletion of a dish that is already a part of a meal
 * Test for a dish with impossible name
