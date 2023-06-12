@@ -66,21 +66,52 @@ print_res(res)
 verify_res_code(res, 201)
 
 
-print(f"Test 2#: Adding a 'mish' dish. Should return 1 (index of the dish) with code 201")
-res = post_dish('mish')
+print(f"Test 2#: Adding a 'chips' dish. Should return 1 (index of the dish) with code 201")
+res = post_dish('chips')
 print_res(res)
 verify_res_code(res, 201)
 
 
-print(f"Test 3#: getting all dishes. Should return empty dict")
+print(f"Test 3#: getting all dishes. Should return dict with fish and chips dishes")
 res = get_all_dishes()
 print_res(res)
 verify_res_code(res, 200)
 
-print(f"Test 4#: Adding a 'mish' dish again. Should return -2 with code ?")
-res = post_dish('mish')
+print(f"Test 4#: Adding a 'fish' dish again. Should return -2 with code ?")
+res = post_dish('fish')
 print_res(res)
-# verify_res_code(res, 201)
+# TODO: verify_res_code(res, 201)
+
+# TODO: add a test that tries to add 'mish' or smth to make sure we treat it correctly..
+
+print(f"Test 5#: Getting dish of index 1. Should return the 'chips' dish")
+res = get_dish_by_idx('1')
+print_res(res)
+verify_res_code(res, 200)
+
+
+print(f"Test 6#: Getting dish by name 'fish'. Should return the 'fish' dish")
+res = get_dish_by_name('fish')
+print_res(res)
+verify_res_code(res, 200)
+
+
+print(f"Test 7#: Deleting a dish of index 1. Should return code 200 and value 1 (the index of chips)")
+res = delete_dish_by_idx('1')
+print_res(res)
+verify_res_code(res, 200)
+assert res.text.rstrip() == '1'
+
+
+print(f"Test 8#: Deleting a dish by name 'fish'. NOTE: note 100% regarding expected return values... Assuming it should return the index, which is supposed to be 0. Verifying response code of 200, is that the expected value?")
+res = delete_dish_by_name('fish')
+print_res(res)
+verify_res_code(res, 200)
+assert res.text.rstrip() == '0'
+
+
+
+
 
 '''
 print(f"Test 3#: Deleting the whole dishes resource. Should give an error with code 405")
@@ -88,17 +119,6 @@ res = requests.delete(dishes)
 print_res(res)
 verify_res_code(res, 405)
 
-
-print(f"Test 4#: Getting dish of index 1. Should return the 'fish' dish")
-res = get_dish_by_idx('1')
-print_res(res)
-verify_res_code(res, 200)
-
-
-print(f"Test 5#: Getting dish 'fish'. Should return the 'fish' dish")
-res = get_dish_by_name('fish')
-print_res(res)
-verify_res_code(res, 200)
 
 
 print(f"Test 6#: Getting dish of index 2. Should return -5 with code 404")
@@ -115,11 +135,6 @@ verify_res_code(res, 404)
 assert res.text.rstrip() == '-5'
 
 
-print(f"Test 8#: Deleting a dish of index 1. Should return code 200 and value 1 (the index of fish)")
-res = delete_dish_by_idx('1')
-print_res(res)
-verify_res_code(res, 200)
-assert res.text.rstrip() == '1'
 
 
 print("Dish list should now be empty")
@@ -128,12 +143,6 @@ print_res(res)
 verify_res_code(res, 200)
 
 
-print(f"Test 9#: Adding and deleting a dish 'chicken'. Should return code 200 and value 2 (the index of chicken)")
-post_dish('chicken')
-res = delete_dish_by_name('chicken')
-print_res(res)
-verify_res_code(res, 200)
-assert res.text.rstrip() == '2'
 
 
 print(f"Test 10#: Deleting a dish of index 3. Should return -5 with status 404.")

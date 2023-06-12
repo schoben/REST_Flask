@@ -77,6 +77,13 @@ def parse_ninja(res):
     return DishValues(size=size, cal=cal, sugar=sugar, sodium=sodium)
 
 
+def parse_cursor(cursor):
+    parsed_dict = list(cursor)
+    for d in parsed_dict:
+        del d['_id']
+    return {d['id']: d for d in parsed_dict}
+
+
 # TODO: Move these two classes to a separate module (decouple), together with Meal and MealsCollection
 class Dish:
     """Class representing a single dish"""
@@ -156,15 +163,11 @@ class DishesCollection:
 
 dishes_collection = DishesCollection()  # Global dishes collection
 
-
 class Dishes(Resource):
     """A Class implementing a REST API for dealing with Dishes"""
 
     def get(self):
-        print(f"Getting all Dishes...")
-        # return dishes_collection._get_all_dishes(), 200
-        print(f"Returning the dishes collection: {dishes_col.find()}")  # TODO: make sure our format is fine
-        return list(dishes_col.find())
+        return parse_cursor(dishes_col.find())
 
     def post(self):
         # TODO: verify the JSON header. return 0 and status 415 (slide 13)
@@ -209,6 +212,7 @@ class Dishes(Resource):
     def delete(self):  # Can we simply remove this and get the same functionality?
         return "This method is not allowed for the requested URL", 405
 
+
 '''
 class Dishes(Resource):
     """A Class implementing a REST API for dealing with Dishes"""
@@ -243,16 +247,23 @@ class DishesId(Resource):
     """RESTful API for dealing with dishes/id resources"""
 
     def get(self, idx):
+        print(f"Getting a dish by index {idx}")
         idx = int(idx)
         try:
-            return dishes_collection.get_dish_by_idx(idx).get_as_dict(), 200
+            dish = dishes_col.find_one({'id': idx})
+            del dish['_id']
+            return dish
+            # return dishes_collection.get_dish_by_idx(idx).get_as_dict(), 200  # TODO: remove line
         except KeyError:
             return -5, 404
 
     def delete(self, idx):
         idx = int(idx)
         try:
-            dishes_collection.delete_dish_by_idx(idx)
+            deleted = dishes_col.delete_one({'id': idx})
+            if deleted != 1:
+                print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
+            # dishes_collection.delete_dish_by_idx(idx)
             return idx, 200
         except KeyError:
             return  -5, 404
@@ -263,6 +274,9 @@ class DishesName(Resource):
 
     def get(self, name):
         try:
+            dish = dishes_col.find_one({'name': name})
+            del dish['_id']
+            return dish
             return dishes_collection.get_dish_by_name(name).get_as_dict()  # TODO: Add response value
         except ValueError as e:
             print(str(e))
@@ -270,9 +284,18 @@ class DishesName(Resource):
 
     def delete(self, name):
         try:
+            dish = self.get(name)
+            print(f"Got a dish: {dish}")
+            idx = dish['id']
+            
+            deleted = dishes_col.delete_one({'id': idx})
+            if deleted != 1:
+                print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
+            ''''
             dish = dishes_collection.get_dish_by_name(name)
             idx = dish._get_idx()
             dishes_collection.delete_dish_by_idx(idx)
+            '''
             return idx, 200
         except ValueError:
             return  -5, 404
