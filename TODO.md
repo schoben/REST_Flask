@@ -1,7 +1,5 @@
 What to do next?
 
-
-* Change the ID and NAME resources of the dish collection to use mongo
 * Convert meals to use mongo DB
 * Implement the diets resource (in a separate module, e.g. diets.py)
 * Create a Dockerfile for the diets service
