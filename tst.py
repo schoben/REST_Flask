@@ -77,6 +77,11 @@ res = get_all_dishes()
 print_res(res)
 verify_res_code(res, 200)
 
+print(f"Test 4#: Adding a 'mish' dish again. Should return -2 with code ?")
+res = post_dish('mish')
+print_res(res)
+# verify_res_code(res, 201)
+
 '''
 print(f"Test 3#: Deleting the whole dishes resource. Should give an error with code 405")
 res = requests.delete(dishes)

@@ -12,6 +12,7 @@ from flask import Flask  # , jsonify
 from flask_restful import Resource, Api, reqparse
 import requests
 import pymongo
+import traceback
 
 
 # Setting up global variables
@@ -20,21 +21,13 @@ app = Flask(__name__)  # initialize Flask
 api = Api(app)  # create API
 ninja_api_key = os.environ['NINJA_API_KEY']
 client = pymongo.MongoClient("localhost", 27017)
+
 # initializing the database
 db = client["food"]
-
 dishes_col = db["dishes"]  # TODO: dish the dish
 meals_col = db["meals"]
 diets_col = db["diets"]
 counters_col = db["counter"]
-
-# Resetting database
-if False:
-    print(f"WARNING: Restting collections!")
-    dishes_col.drop()
-    meals_col.drop()
-    diets_col.drop()
-    counters_col.drop()
 
 # TODO export to a function
 # Initializing counters
@@ -59,7 +52,8 @@ DishValues = namedtuple('DishValues', ['size', 'cal', 'sugar', 'sodium'])
 
 
 # TODO: move following two function to a different module. Consider encapsulating in a class
-def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized) api_url = 'https://api.api-ninjas.com/v1/nutrition?query={}'.format(query)
+def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized) 
+    api_url = 'https://api.api-ninjas.com/v1/nutrition?query={}'.format(query)
     response = requests.get(api_url, headers={'X-Api-Key': ninja_api_key}) 
     print(f"Got the following response from Ninja: {response} {response.json()}")
     if response.json() == []:
@@ -182,20 +176,25 @@ class Dishes(Resource):
         print(f"Dish name to add: {dish_name}")
         if dish_name is None: 
             return -1, 422
-        '''
-        TODO: requires implementation
-        if dishes_collection.dish_exists(dish_name):
-            return -2, 422  # Dish name already exists
-        '''
-        
+
+        # Checking if the Dish already exists in the DB
+        dish = dishes_col.find_one({'name': dish_name})
+        if dish is not None:
+            return -2, 422  # TODO: verify that this is the correct return code
+
         try:
             # idx = dishes_collection.add_dish(dish_name)
             # TODO: make sure we refer to the right variable '_id'
-            print(f"Trying to add to mongo")
 
             # Getting the index of current dish
             idx = counters_col.find_one({"_id": 0})["dishes"]
-            result = dishes_col.insert_one({"_id": idx, "name": dish_name})
+            print(f"Creating a dish object")
+            dish = Dish(dish_name, idx)
+            dish_dict = dish.get_as_dict()
+            print(f"Adding the following to DB: {dish_dict}")
+            # TODO: probably pass dish_dict instead of the dict below
+            result = dishes_col.insert_one(dish_dict)
+            # result = dishes_col.insert_one({"_id": idx, "name": dish_name})
             print(f"added the {dish_name} dish as index {idx}")
             counters_col.update_one({"_id": 0}, {"$set": {'dishes': idx + 1}})
             print(f"Updated the index")
@@ -203,6 +202,7 @@ class Dishes(Resource):
             return -3, 422
         except Exception as e:  # Specify Exception type
             print(type(e), e)
+            traceback.print_exc()
             return -4, 504
         return idx, 201
 
