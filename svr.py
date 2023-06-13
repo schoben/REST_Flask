@@ -34,7 +34,7 @@ counters_col = db["counter"]
 counters = counters_col.find_one({'_id': 0})
 if counters is None:
     print("Couldn't find any counters! Initializing counters to 0")
-    counters_col.insert_one({'_id': 0, 'dishes': 0, 'meals': 0, 'diets': 0})
+    counters_col.insert_one({'_id': 0, 'dishes': 0, 'meals': 0})
 else:
     print(f"Found counters: {counters}")
 
@@ -81,7 +81,7 @@ def parse_cursor(cursor):
     parsed_dict = list(cursor)
     for d in parsed_dict:
         del d['_id']
-    return {d['id']: d for d in parsed_dict}
+    return {d['ID']: d for d in parsed_dict}
 
 
 # TODO: Move these two classes to a separate module (decouple), together with Meal and MealsCollection
@@ -114,7 +114,7 @@ class Dish:
         return self.sodium
 
     def get_as_dict(self):
-        return {'name': self.name, 'id': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
+        return {'name': self.name, 'ID': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
 
 
 class DishesCollection:
@@ -153,7 +153,7 @@ class DishesCollection:
 
     def delete_dish_by_idx(self, idx):
         dish = self.dishes.pop(idx)  # removing the dish from the DishesCollection
-        meals_collection.remove_dish(idx)
+        meals_col.remove_dish(idx)
         del dish  # removing the deleted dish from memory
 
     def get_dish_idx_by_name(self, name):
@@ -277,7 +277,7 @@ class DishesName(Resource):
             dish = dishes_col.find_one({'name': name})
             del dish['_id']
             return dish
-            return dishes_collection.get_dish_by_name(name).get_as_dict()  # TODO: Add response value
+            #return dishes_collection.get_dish_by_name(name).get_as_dict()  # TODO: Add response value
         except ValueError as e:
             print(str(e))
             return -5, 404
@@ -298,7 +298,7 @@ class DishesName(Resource):
             '''
             return idx, 200
         except ValueError:
-            return  -5, 404
+            return -5, 404
 
 
 class Meal:
@@ -321,10 +321,11 @@ class Meal:
                 print("Skipping dish nutritional values")
                 continue
             try:
-                dish = dishes_collection.get_dish_by_idx(dish_idx)
-                self.cal += dish.get_cal()
-                self.sugar += dish.get_sugar()
-                self.sodium += dish.get_sodium()
+                #dish = dishes_collection.get_dish_by_idx(dish_idx)
+                dish = dishes_col.find_one({'ID': dish_idx})
+                self.cal += dish['cal']
+                self.sugar += dish['sugar']
+                self.sodium += dish['sodium']
             except Exception as e:  # Narrow down exception type
                 raise e
 
@@ -400,7 +401,7 @@ class MealsCollection:
             meal.remove_dish(idx)
 
 
-meals_collection = MealsCollection()
+#meals_col = MealsCollection()
 
 
 class Meals(Resource):
@@ -420,17 +421,26 @@ class Meals(Resource):
             appetizer = args['appetizer']
             main = args['main']
             dessert = args['dessert']
-            print(f"Adding a meal. Name: {name}, appetizer: {appetizer}, dessert: {dessert}")
-            print(dishes_collection._get_all_dishes())
-            idx = meals_collection.add_meal(name, appetizer, main, dessert)
+            print('get index')
+            idx = counters_col.find_one({"_id": 0})["meals"]
+            print('making meal')
+            meal = Meal(name=name, appetizer=appetizer, main=main, dessert=dessert, idx=idx)
+            meal_dict = meal.get_as_dict()
+            print(f"Adding a meal. Name: {name}, appetizer: {appetizer}, main: {main} dessert: {dessert}")
+            # print(dishes_collection._get_all_dishes())
+            result = meals_col.insert_one(meal_dict)
+            print(f"added the {name} dish as index {idx}")
+            counters_col.update_one({"_id": 0}, {"$set": {'meals': idx + 1}})
+            #meals_col.insert_one({'name': name, 'appetizer': appetizer, 'main': main, 'dessert': dessert})
             return idx, 201
         except KeyError as e:
             print(f"Invalid key: {e}")
+            #traceback.print_exc()
             return -6, 422
 
     def get(self):
         print(f"Getting all meals")
-        meals = meals_collection.get_all_meals()
+        meals = parse_cursor(meals_col.find())
         return meals, 200
 
 
@@ -443,7 +453,8 @@ class MealsId(Resource):
         print('MealsId Get invoked')
         print(type(idx))
         try:
-            meal = meals_collection.get_meal_by_idx(idx).get_as_dict()  # TODO: Except KeyError
+            meal = meals_col.find_one({'ID': idx})
+            del meal['_id']# TODO: Except KeyError
             print(f"Retrieved a meal by the meals/id resource for idx {idx}: {meal}")
             return meal, 200
         except KeyError:
@@ -451,7 +462,11 @@ class MealsId(Resource):
 
     def delete(self, idx):  # TODO: Add failure. reponse -5, code 404
         try:
-            meals_collection.delete_meal_by_idx(idx)
+            deleted = meals_col.delete_one({'ID': idx})
+            if deleted != 1:
+                print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
+            else:
+                print('deleted successfully')
             return idx, 200
         except KeyError:
             return -5, 404
@@ -472,8 +487,14 @@ class MealsId(Resource):
             main = args['main']
             dessert = args['dessert']
             print(f"Updating a meal. Name: {name}, idx: {idx}, appetizer: {appetizer}, dessert: {dessert}")
-            meal = meals_collection.get_meal_by_idx(idx)
-            meal.update(name, appetizer, main, dessert)
+            #below meal for debugging only
+            meal = meals_col.find_one({'ID': idx})
+            print(meal)
+            # del meal['_id']
+            meal = Meal(name=name, appetizer=appetizer, main=main, dessert=dessert, idx=idx).get_as_dict()
+            del meal['ID']
+            meals_col.update_one({'ID': idx}, {"$set": meal})
+            print(meals_col.find_one({'ID': idx}))
             return idx, 200
         except KeyError as e:  # TODO: What errors may we catch here? How to handle them?
             print(f"Invalid key: {e}")
@@ -485,7 +506,8 @@ class MealsName(Resource):
 
     def get(self, name):  # TODO: Add failure. reponse -5, code 404
         try:
-            meal = meals_collection.get_meal_by_name(name).get_as_dict()
+            meal = meals_col.find_one({'name': name})
+            del meal['_id']
             print(f"Retrieved a meal by the meals/name resource for name {name}: {meal}")
             return meal, 200
         except ValueError:
@@ -493,8 +515,10 @@ class MealsName(Resource):
 
     def delete(self, name):  # TODO: Add failure. reponse -5, code 404
         try:
-            idx = meals_collection.delete_meal_by_name(name)
-            return idx, 200
+            deleted = meals_col.delete_one({'name': name})
+            if deleted != 1:
+                print(f"WARNING: When deleting name {name} {deleted.deleted_count} items were deleted")
+            return name, 200
         except ValueError:
             return -5, 404
 
@@ -508,5 +532,5 @@ api.add_resource(MealsName, '/meals/<string:name>')
 
 if __name__ == '__main__':
     print(f"Running Meals&Dishes server ({__file__})")
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='http://127.0.0.1', port=8000, debug=True)
 

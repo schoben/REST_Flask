@@ -1,7 +1,6 @@
 What to do next?
 
 * Convert meals to use mongo DB
-* Implement the diets resource (in a separate module, e.g. diets.py)
 * Create a Dockerfile for the diets service
 * Update the meals service to communicate with the Diets service
 * Add nginx to the Docker-compose
@@ -9,11 +8,12 @@ What to do next?
 
 
 Also need:
-* Way to reset the mongo DB
+* Make sure return values are the same as specified in the assignment
 * Fix mistakes from ex1
 * Verify that it is possible to 'connect' to the containers so they can be killed (in testing)
 * Go over TODO statements and remove whatever we can
 * write some test
+
 
 
 

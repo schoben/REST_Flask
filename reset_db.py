@@ -18,7 +18,7 @@ import pymongo
 # TODO: extract to a function
 app = Flask(__name__)  # initialize Flask
 api = Api(app)  # create API
-ninja_api_key = os.environ['NINJA_API_KEY']
+# ninja_api_key = os.environ['NINJA_API_KEY']
 client = pymongo.MongoClient("localhost", 27017)
 
 # initializing the database
