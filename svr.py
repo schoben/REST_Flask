@@ -11,27 +11,57 @@ from collections import namedtuple
 from flask import Flask  # , jsonify
 from flask_restful import Resource, Api, reqparse
 import requests
+import pymongo
+import traceback
+
 
 # Setting up global variables
+# TODO: extract to a function
 app = Flask(__name__)  # initialize Flask
 api = Api(app)  # create API
 ninja_api_key = os.environ['NINJA_API_KEY']
+client = pymongo.MongoClient("localhost", 27017)
+
+# initializing the database
+db = client["food"]
+dishes_col = db["dishes"]  # TODO: dish the dish
+meals_col = db["meals"]
+diets_col = db["diets"]
+counters_col = db["counter"]
+
+# TODO export to a function
+# Initializing counters
+counters = counters_col.find_one({'_id': 0})
+if counters is None:
+    print("Couldn't find any counters! Initializing counters to 0")
+    counters_col.insert_one({'_id': 0, 'dishes': 0, 'meals': 0})
+else:
+    print(f"Found counters: {counters}")
+
+'''
+dishes_idx = counters.get('dishes', 0)
+meals_idx = counters.get('meals', 0)
+diets_idx = counters.get('diets', 0)
+mydict = {'_id': 0, 'dish_idx': dishes_idx, 'meals_idx': meals_idx, 'diets_idx': diets_idx}
+counter_col.insert_one(mydict)  # TODO: use update instead of insert
+'''
+
 
 # Creating a namedtuple for storing dish values
 DishValues = namedtuple('DishValues', ['size', 'cal', 'sugar', 'sodium'])
 
 
 # TODO: move following two function to a different module. Consider encapsulating in a class
-def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized)
-        api_url = 'https://api.api-ninjas.com/v1/nutrition?query={}'.format(query)
-        response = requests.get(api_url, headers={'X-Api-Key': ninja_api_key})
-        print(f"Got the following response from Ninja: {response} {response.json()}")
-        if response.json() == []:
-            raise ValueError("API-Ninja couldn't parse dish named {query}")
-        if response.status_code == requests.codes.ok:
-            return response.json()
-        else:
-            raise Exception("Error:", response.status_code, response.text)
+def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized) 
+    api_url = 'https://api.api-ninjas.com/v1/nutrition?query={}'.format(query)
+    response = requests.get(api_url, headers={'X-Api-Key': ninja_api_key}) 
+    print(f"Got the following response from Ninja: {response} {response.json()}")
+    if response.json() == []:
+        raise ValueError("API-Ninja couldn't parse dish named {query}")
+    if response.status_code == requests.codes.ok:
+        return response.json()
+    else:
+        raise Exception("Error:", response.status_code, response.text)
 
 
 def parse_ninja(res):
@@ -45,6 +75,13 @@ def parse_ninja(res):
         sugar += dish_dict['sugar_g']
         sodium += dish_dict['sodium_mg']
     return DishValues(size=size, cal=cal, sugar=sugar, sodium=sodium)
+
+
+def parse_cursor(cursor):
+    parsed_dict = list(cursor)
+    for d in parsed_dict:
+        del d['_id']
+    return {d['ID']: d for d in parsed_dict}
 
 
 # TODO: Move these two classes to a separate module (decouple), together with Meal and MealsCollection
@@ -77,8 +114,7 @@ class Dish:
         return self.sodium
 
     def get_as_dict(self):
-        return {'name': self.name, 'id': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
-
+        return {'name': self.name, 'ID': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
 
 
 class DishesCollection:
@@ -101,6 +137,7 @@ class DishesCollection:
         raise ValueError(f"Couldn't find a dish that goes by the name {name}")
 
     def dish_exists(self, name):
+        '''func that checks if the dish exists in the db'''
         try:
             self.get_dish_by_name(name)
             return True
@@ -116,7 +153,7 @@ class DishesCollection:
 
     def delete_dish_by_idx(self, idx):
         dish = self.dishes.pop(idx)  # removing the dish from the DishesCollection
-        meals_collection.remove_dish(idx)
+        meals_col.remove_dish(idx)
         del dish  # removing the deleted dish from memory
 
     def get_dish_idx_by_name(self, name):
@@ -126,7 +163,57 @@ class DishesCollection:
 
 dishes_collection = DishesCollection()  # Global dishes collection
 
+class Dishes(Resource):
+    """A Class implementing a REST API for dealing with Dishes"""
 
+    def get(self):
+        return parse_cursor(dishes_col.find())
+
+    def post(self):
+        # TODO: verify the JSON header. return 0 and status 415 (slide 13)
+        print("Adding a dish")
+        parser = reqparse.RequestParser()
+        parser.add_argument('name')
+        args = parser.parse_args()
+        dish_name = args['name']
+        print(f"Dish name to add: {dish_name}")
+        if dish_name is None: 
+            return -1, 422
+
+        # Checking if the Dish already exists in the DB
+        dish = dishes_col.find_one({'name': dish_name})
+        if dish is not None:
+            return -2, 422  # TODO: verify that this is the correct return code
+
+        try:
+            # idx = dishes_collection.add_dish(dish_name)
+            # TODO: make sure we refer to the right variable '_id'
+
+            # Getting the index of current dish
+            idx = counters_col.find_one({"_id": 0})["dishes"]
+            print(f"Creating a dish object")
+            dish = Dish(dish_name, idx)
+            dish_dict = dish.get_as_dict()
+            print(f"Adding the following to DB: {dish_dict}")
+            # TODO: probably pass dish_dict instead of the dict below
+            result = dishes_col.insert_one(dish_dict)
+            # result = dishes_col.insert_one({"_id": idx, "name": dish_name})
+            print(f"added the {dish_name} dish as index {idx}")
+            counters_col.update_one({"_id": 0}, {"$set": {'dishes': idx + 1}})
+            print(f"Updated the index")
+        except ValueError:
+            return -3, 422
+        except Exception as e:  # Specify Exception type
+            print(type(e), e)
+            traceback.print_exc()
+            return -4, 504
+        return idx, 201
+
+    def delete(self):  # Can we simply remove this and get the same functionality?
+        return "This method is not allowed for the requested URL", 405
+
+
+'''
 class Dishes(Resource):
     """A Class implementing a REST API for dealing with Dishes"""
 
@@ -153,23 +240,30 @@ class Dishes(Resource):
 
     def delete(self):  # Can we simply remove this and get the same functionality?
         return "This method is not allowed for the requested URL", 405
-
+'''
 
 
 class DishesId(Resource):
     """RESTful API for dealing with dishes/id resources"""
 
     def get(self, idx):
+        print(f"Getting a dish by index {idx}")
         idx = int(idx)
         try:
-            return dishes_collection.get_dish_by_idx(idx).get_as_dict(), 200
+            dish = dishes_col.find_one({'id': idx})
+            del dish['_id']
+            return dish
+            # return dishes_collection.get_dish_by_idx(idx).get_as_dict(), 200  # TODO: remove line
         except KeyError:
             return -5, 404
 
     def delete(self, idx):
         idx = int(idx)
         try:
-            dishes_collection.delete_dish_by_idx(idx)
+            deleted = dishes_col.delete_one({'id': idx})
+            if deleted != 1:
+                print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
+            # dishes_collection.delete_dish_by_idx(idx)
             return idx, 200
         except KeyError:
             return  -5, 404
@@ -180,19 +274,31 @@ class DishesName(Resource):
 
     def get(self, name):
         try:
-            return dishes_collection.get_dish_by_name(name).get_as_dict()  # TODO: Add response value
+            dish = dishes_col.find_one({'name': name})
+            del dish['_id']
+            return dish
+            #return dishes_collection.get_dish_by_name(name).get_as_dict()  # TODO: Add response value
         except ValueError as e:
             print(str(e))
             return -5, 404
 
     def delete(self, name):
         try:
+            dish = self.get(name)
+            print(f"Got a dish: {dish}")
+            idx = dish['id']
+            
+            deleted = dishes_col.delete_one({'id': idx})
+            if deleted != 1:
+                print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
+            ''''
             dish = dishes_collection.get_dish_by_name(name)
             idx = dish._get_idx()
             dishes_collection.delete_dish_by_idx(idx)
+            '''
             return idx, 200
         except ValueError:
-            return  -5, 404
+            return -5, 404
 
 
 class Meal:
@@ -215,10 +321,11 @@ class Meal:
                 print("Skipping dish nutritional values")
                 continue
             try:
-                dish = dishes_collection.get_dish_by_idx(dish_idx)
-                self.cal += dish.get_cal()
-                self.sugar += dish.get_sugar()
-                self.sodium += dish.get_sodium()
+                #dish = dishes_collection.get_dish_by_idx(dish_idx)
+                dish = dishes_col.find_one({'ID': dish_idx})
+                self.cal += dish['cal']
+                self.sugar += dish['sugar']
+                self.sodium += dish['sodium']
             except Exception as e:  # Narrow down exception type
                 raise e
 
@@ -294,7 +401,7 @@ class MealsCollection:
             meal.remove_dish(idx)
 
 
-meals_collection = MealsCollection()
+#meals_col = MealsCollection()
 
 
 class Meals(Resource):
@@ -314,17 +421,26 @@ class Meals(Resource):
             appetizer = args['appetizer']
             main = args['main']
             dessert = args['dessert']
-            print(f"Adding a meal. Name: {name}, appetizer: {appetizer}, dessert: {dessert}")
-            print(dishes_collection._get_all_dishes())
-            idx = meals_collection.add_meal(name, appetizer, main, dessert)
+            print('get index')
+            idx = counters_col.find_one({"_id": 0})["meals"]
+            print('making meal')
+            meal = Meal(name=name, appetizer=appetizer, main=main, dessert=dessert, idx=idx)
+            meal_dict = meal.get_as_dict()
+            print(f"Adding a meal. Name: {name}, appetizer: {appetizer}, main: {main} dessert: {dessert}")
+            # print(dishes_collection._get_all_dishes())
+            result = meals_col.insert_one(meal_dict)
+            print(f"added the {name} dish as index {idx}")
+            counters_col.update_one({"_id": 0}, {"$set": {'meals': idx + 1}})
+            #meals_col.insert_one({'name': name, 'appetizer': appetizer, 'main': main, 'dessert': dessert})
             return idx, 201
         except KeyError as e:
             print(f"Invalid key: {e}")
+            #traceback.print_exc()
             return -6, 422
 
     def get(self):
         print(f"Getting all meals")
-        meals = meals_collection.get_all_meals()
+        meals = parse_cursor(meals_col.find())
         return meals, 200
 
 
@@ -337,7 +453,8 @@ class MealsId(Resource):
         print('MealsId Get invoked')
         print(type(idx))
         try:
-            meal = meals_collection.get_meal_by_idx(idx).get_as_dict()  # TODO: Except KeyError
+            meal = meals_col.find_one({'ID': idx})
+            del meal['_id']# TODO: Except KeyError
             print(f"Retrieved a meal by the meals/id resource for idx {idx}: {meal}")
             return meal, 200
         except KeyError:
@@ -345,7 +462,11 @@ class MealsId(Resource):
 
     def delete(self, idx):  # TODO: Add failure. reponse -5, code 404
         try:
-            meals_collection.delete_meal_by_idx(idx)
+            deleted = meals_col.delete_one({'ID': idx})
+            if deleted != 1:
+                print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
+            else:
+                print('deleted successfully')
             return idx, 200
         except KeyError:
             return -5, 404
@@ -366,8 +487,14 @@ class MealsId(Resource):
             main = args['main']
             dessert = args['dessert']
             print(f"Updating a meal. Name: {name}, idx: {idx}, appetizer: {appetizer}, dessert: {dessert}")
-            meal = meals_collection.get_meal_by_idx(idx)
-            meal.update(name, appetizer, main, dessert)
+            #below meal for debugging only
+            meal = meals_col.find_one({'ID': idx})
+            print(meal)
+            # del meal['_id']
+            meal = Meal(name=name, appetizer=appetizer, main=main, dessert=dessert, idx=idx).get_as_dict()
+            del meal['ID']
+            meals_col.update_one({'ID': idx}, {"$set": meal})
+            print(meals_col.find_one({'ID': idx}))
             return idx, 200
         except KeyError as e:  # TODO: What errors may we catch here? How to handle them?
             print(f"Invalid key: {e}")
@@ -379,7 +506,8 @@ class MealsName(Resource):
 
     def get(self, name):  # TODO: Add failure. reponse -5, code 404
         try:
-            meal = meals_collection.get_meal_by_name(name).get_as_dict()
+            meal = meals_col.find_one({'name': name})
+            del meal['_id']
             print(f"Retrieved a meal by the meals/name resource for name {name}: {meal}")
             return meal, 200
         except ValueError:
@@ -387,8 +515,10 @@ class MealsName(Resource):
 
     def delete(self, name):  # TODO: Add failure. reponse -5, code 404
         try:
-            idx = meals_collection.delete_meal_by_name(name)
-            return idx, 200
+            deleted = meals_col.delete_one({'name': name})
+            if deleted != 1:
+                print(f"WARNING: When deleting name {name} {deleted.deleted_count} items were deleted")
+            return name, 200
         except ValueError:
             return -5, 404
 
@@ -402,4 +532,5 @@ api.add_resource(MealsName, '/meals/<string:name>')
 
 if __name__ == '__main__':
     print(f"Running Meals&Dishes server ({__file__})")
+    app.run(host='http://127.0.0.1', port=8000, debug=True)
 
