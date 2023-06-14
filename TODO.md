@@ -1,7 +1,7 @@
 What to do next?
 
-* Convert meals to use mongo DB
 * Create a Dockerfile for the diets service
+ - Create a new Dockerfile for the diets server
 * Update the meals service to communicate with the Diets service
 * Add nginx to the Docker-compose
 * Add building of the Dockerfiles to the docker-compose
