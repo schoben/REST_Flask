@@ -73,7 +73,7 @@ print_res(res)
 verify_res_code(res, 201)
 
 
-print(f"Test 3#: getting all dishes. Should return dict with fish and chips dishes")
+print(f"Test 3#: getting all dishes. Should return list with fish and chips dishes")
 res = get_all_dishes()
 print_res(res)
 verify_res_code(res, 200)

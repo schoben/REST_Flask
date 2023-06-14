@@ -2,6 +2,7 @@ version: '3'
 
 services:
   meal-service:
+    container_name: 'meals'
     build: ./meals  # path is relative to docker-compose-shorthand.yml location
     restart: always   # possible values for restart are:  "no", always, on-failure, unless-stopped
     volumes:
@@ -18,6 +19,7 @@ services:
       - mongo
       - diet-service
   diet-service:
+    container_name: 'diets'
     build: ./diets  # path is relative to docker-compose-shorthand.yml location
     restart: always   # possible values for restart are:  "no", always, on-failure, unless-stopped
     volumes:

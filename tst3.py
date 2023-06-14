@@ -111,17 +111,17 @@ print()
 
 #
 # Delete meal by index
-print(f"Deleteing meal of index 0")
-res = delete_meal('0')
-print_res(res)
-print()
+# print(f"Deleteing meal of index 0")
+# res = delete_meal('0')
+# print_res(res)
+# print()
 
 
 # Delete meal by name
-print(f"Deleteing meal of index basic")
-res = delete_meal('basic')
-print_res(res)
-print()
+# print(f"Deleteing meal of index basic")
+# res = delete_meal('basic')
+# print_res(res)
+# print()
 
 
 
