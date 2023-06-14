@@ -49,6 +49,11 @@ res = post_diet('health', 2000, 200, 50)
 print_res(res)
 verify_res_code(res, 201)
 
+print(f"Test: Adding a 'medium' diet. Should return 'Diet health was created successfully' with code 201")
+res = post_diet('medium', 2000, 500, 50)
+print_res(res)
+verify_res_code(res, 201)
+
 print(f"Test: Adding'health' diet again. Should return 'Diet with health already exists' with code 422")
 res = post_diet('health', 2000, 200, 50)
 print_res(res)

@@ -22,6 +22,7 @@ api = Api(app)  # create API
 ninja_api_key = 'GZhBLJkOriPZwhCOJlOdHg==UEeUzdzoKypBxfto'
     #os.environ['NINJA_API_KEY']
 client = pymongo.MongoClient("mongodb://mongo:27017")
+# client = pymongo.MongoClient('localhost', 27017)
 
 # initializing the database
 db = client["food"]
@@ -29,6 +30,9 @@ dishes_col = db["dishes"]  # TODO: dish the dish
 meals_col = db["meals"]
 # diets_col = db["diets"]
 counters_col = db["counter"]
+DIETS = 'diets'
+PORT = 80
+RESOURCE = 'diets'
 
 # TODO export to a function
 # Initializing counters
@@ -80,9 +84,10 @@ def parse_ninja(res):
 
 def parse_cursor(cursor):
     parsed_dict = list(cursor)
+    print(parsed_dict)
     for d in parsed_dict:
         del d['_id']
-    return {d['ID']: d for d in parsed_dict}
+    return parsed_dict
 
 
 # TODO: Move these two classes to a separate module (decouple), together with Meal and MealsCollection
@@ -118,51 +123,51 @@ class Dish:
         return {'name': self.name, 'ID': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
 
 
-class DishesCollection:
-    """Collection class of all the dishes"""
-
-    def __init__(self):
-        self.dishes = dict()
-        self.num_of_dishes = 0
-
-    def _get_all_dishes(self):
-        return {idx: dish.get_as_dict() for idx, dish in self.dishes.items()}
-
-    def get_dish_by_idx(self, idx):
-        return self.dishes[idx]
-
-    def get_dish_by_name(self, name):
-        for _, dish in self.dishes.items():  # Use .values() instead
-            if dish._get_name() == name:
-                return dish
-        raise ValueError(f"Couldn't find a dish that goes by the name {name}")
-
-    def dish_exists(self, name):
-        '''func that checks if the dish exists in the db'''
-        try:
-            self.get_dish_by_name(name)
-            return True
-        except ValueError:
-            return False
-
-    def add_dish(self, name):
-        print(f"Adding to Dishes: name {name}, idx: {self.num_of_dishes}")
-        dish = Dish(name, self.num_of_dishes + 1)
-        self.num_of_dishes += 1  # No support for concurrency
-        self.dishes[self.num_of_dishes] = dish
-        return self.num_of_dishes
-
-    def delete_dish_by_idx(self, idx):
-        dish = self.dishes.pop(idx)  # removing the dish from the DishesCollection
-        meals_col.remove_dish(idx)
-        del dish  # removing the deleted dish from memory
-
-    def get_dish_idx_by_name(self, name):
-        dish = self.get_dish_by_name(name)
-        return dish._get_idx()
-
-
-dishes_collection = DishesCollection()  # Global dishes collection
+# class DishesCollection:
+#     """Collection class of all the dishes"""
+#
+#     def __init__(self):
+#         self.dishes = dict()
+#         self.num_of_dishes = 0
+#
+#     def _get_all_dishes(self):
+#         return {idx: dish.get_as_dict() for idx, dish in self.dishes.items()}
+#
+#     def get_dish_by_idx(self, idx):
+#         return self.dishes[idx]
+#
+#     def get_dish_by_name(self, name):
+#         for _, dish in self.dishes.items():  # Use .values() instead
+#             if dish._get_name() == name:
+#                 return dish
+#         raise ValueError(f"Couldn't find a dish that goes by the name {name}")
+#
+#     def dish_exists(self, name):
+#         '''func that checks if the dish exists in the db'''
+#         try:
+#             self.get_dish_by_name(name)
+#             return True
+#         except ValueError:
+#             return False
+#
+#     def add_dish(self, name):
+#         print(f"Adding to Dishes: name {name}, idx: {self.num_of_dishes}")
+#         dish = Dish(name, self.num_of_dishes + 1)
+#         self.num_of_dishes += 1  # No support for concurrency
+#         self.dishes[self.num_of_dishes] = dish
+#         return self.num_of_dishes
+#
+#     def delete_dish_by_idx(self, idx):
+#         dish = self.dishes.pop(idx)  # removing the dish from the DishesCollection
+#         meals_col.remove_dish(idx)
+#         del dish  # removing the deleted dish from memory
+#
+#     def get_dish_idx_by_name(self, name):
+#         dish = self.get_dish_by_name(name)
+#         return dish._get_idx()
+#
+#
+# dishes_collection = DishesCollection()  # Global dishes collection
 
 class Dishes(Resource):
     """A Class implementing a REST API for dealing with Dishes"""
@@ -360,46 +365,46 @@ class Meal:
         self.update_nutritional_vals()
 
 
-class MealsCollection:
-    """Class representing a collection of meals"""
-
-    def __init__(self):
-        self.num_of_meals = 0
-        self.meals = dict()
-
-    def add_meal(self, name, appetizer, main, dessert):
-        self.num_of_meals += 1  # No concurrency support.  # TODO: failing to create a meal with result in an unused idx
-        meal = Meal(name, self.num_of_meals, appetizer, main, dessert)
-        self.meals[self.num_of_meals] = meal
-        return self.num_of_meals  # The index of the meal
-
-    def get_all_meals(self):
-        meals_json = {idx: meal.get_as_dict() for idx, meal in self.meals.items()}
-        return meals_json
-
-    def get_meal_by_idx(self, idx):
-        return self.meals[idx]
-
-    def get_meal_by_name(self, name):
-        print(f"Looking for meal named {name} in {len(self.meals.keys())} meals..")
-        for _, meal in self.meals.items():  # TODO: Use .values() instead of .items()
-            if meal.get_name() == name:
-                return meal
-        raise ValueError(f"Couldn't find a meal named {name}")
-
-    def delete_meal_by_idx(self, idx):
-        meal = self.meals.pop(idx)
-        del meal
-
-    def delete_meal_by_name(self, name):
-        meal = self.get_meal_by_name(name)
-        idx = meal.get_idx()
-        del self.meals[idx]
-        return idx
-
-    def remove_dish(self, idx):
-        for meal in self.meals.values():
-            meal.remove_dish(idx)
+# class MealsCollection:
+#     """Class representing a collection of meals"""
+#
+#     def __init__(self):
+#         self.num_of_meals = 0
+#         self.meals = dict()
+#
+#     def add_meal(self, name, appetizer, main, dessert):
+#         self.num_of_meals += 1  # No concurrency support.  # TODO: failing to create a meal with result in an unused idx
+#         meal = Meal(name, self.num_of_meals, appetizer, main, dessert)
+#         self.meals[self.num_of_meals] = meal
+#         return self.num_of_meals  # The index of the meal
+#
+#     def get_all_meals(self):
+#         meals_json = {idx: meal.get_as_dict() for idx, meal in self.meals.items()}
+#         return meals_json
+#
+#     def get_meal_by_idx(self, idx):
+#         return self.meals[idx]
+#
+#     def get_meal_by_name(self, name):
+#         print(f"Looking for meal named {name} in {len(self.meals.keys())} meals..")
+#         for _, meal in self.meals.items():  # TODO: Use .values() instead of .items()
+#             if meal.get_name() == name:
+#                 return meal
+#         raise ValueError(f"Couldn't find a meal named {name}")
+#
+#     def delete_meal_by_idx(self, idx):
+#         meal = self.meals.pop(idx)
+#         del meal
+#
+#     def delete_meal_by_name(self, name):
+#         meal = self.get_meal_by_name(name)
+#         idx = meal.get_idx()
+#         del self.meals[idx]
+#         return idx
+#
+#     def remove_dish(self, idx):
+#         for meal in self.meals.values():
+#             meal.remove_dish(idx)
 
 
 #meals_col = MealsCollection()
@@ -422,8 +427,8 @@ class Meals(Resource):
             appetizer = args['appetizer']
             main = args['main']
             dessert = args['dessert']
-            print('get index')
             idx = counters_col.find_one({"_id": 0})["meals"]
+            print(idx)
             print('making meal')
             meal = Meal(name=name, appetizer=appetizer, main=main, dessert=dessert, idx=idx)
             meal_dict = meal.get_as_dict()
@@ -440,9 +445,26 @@ class Meals(Resource):
             return -6, 422
 
     def get(self):
-        print(f"Getting all meals")
-        meals = parse_cursor(meals_col.find())
-        return meals, 200
+        parser = reqparse.RequestParser()
+        parser.add_argument('diet', type=str, location='args', required=False)
+        args = parser.parse_args()
+        if args['diet']:
+            diet = args['diet']
+            res = requests.get(f'http://{DIETS}:{PORT}/{RESOURCE}/{diet}')
+            diet_dict = res.json()
+            relevant_meals = []
+            all_meals = parse_cursor(meals_col.find())
+            for meal in all_meals:
+                if meal['cal'] <= diet_dict['cal'] and meal['sodium'] <= diet_dict['sodium'] \
+                        and meal['sugar'] <= diet_dict['sugar']:
+                    relevant_meals.append(meal)
+            #assuming under the values
+            return relevant_meals
+        else:
+            print(f"Getting all meals")
+            meals = parse_cursor(meals_col.find())
+            return meals, 200
+
 
 
 
@@ -533,5 +555,5 @@ api.add_resource(MealsName, '/meals/<string:name>')
 
 if __name__ == '__main__':
     print(f"Running Meals&Dishes server ({__file__})")
-#     app.run(host='http://127.0.0.1', port=5001, debug=True)
+    # app.run(host='http://127.0.0.1', port=5001, debug=True)
 

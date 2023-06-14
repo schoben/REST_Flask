@@ -1,18 +1,12 @@
 What to do next?
 
-* Create a Dockerfile for the diets service
- - Create a new Dockerfile for the diets server
-* Update the meals service to communicate with the Diets service
-* Add nginx to the Docker-compose
-* Add building of the Dockerfiles to the docker-compose
-
 
 Also need:
 * Make sure return values are the same as specified in the assignment
 * Fix mistakes from ex1
 * Verify that it is possible to 'connect' to the containers so they can be killed (in testing)
 * Go over TODO statements and remove whatever we can
-* write some test
+* write some test for diets + meals combo
 
 
 
