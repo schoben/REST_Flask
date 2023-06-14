@@ -2,7 +2,7 @@
 import requests
 import json
 
-port = '5000'
+port = '5001'
 root = 'http://127.0.0.1:' + port
 dishes = root + '/dishes'
 header = {'Content-Type': 'application/json'}

@@ -15,7 +15,7 @@ app = Flask(__name__)  # initialize Flask
 api = Api(app)  # create API
 
 
-client = pymongo.MongoClient("localhost", 27017)
+client = pymongo.MongoClient("mongodb://mongo:27017/")
 db = client["food"]
 diets_col = db["diets"]
 
@@ -104,4 +104,4 @@ api.add_resource(DietsName, '/diets/<string:name>')
 
 if __name__ == '__main__':
     print(f"Running Diets server ({__file__})")
-    app.run(host='0.0.0.0', port=5002, debug=True)
+#     app.run(host='0.0.0.0', port=5002, debug=True)
