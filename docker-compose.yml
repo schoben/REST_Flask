@@ -18,6 +18,7 @@ services:
     depends_on:
       - mongo
       - diet-service
+
   diet-service:
     container_name: 'diets'
     build: ./diets  # path is relative to docker-compose-shorthand.yml location
@@ -34,6 +35,16 @@ services:
       - 80
     depends_on:
       - mongo
+
+  reverse:
+    build: ./nginx
+    restart: always
+    ports:
+      - "80:80"  # host:container
+    depends_on: # website is not going to work unless these services are running.
+      - meal-service
+      - diet-service
+
   mongo:
     container_name: 'mongo'
     image: mongo:latest

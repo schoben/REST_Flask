@@ -1,9 +1,6 @@
 What to do next?
 
 
-* Add nginx to the Docker-compose
-
-
 Also need:
 * Make sure return values are the same as specified in the assignment
 * Fix mistakes from ex1
