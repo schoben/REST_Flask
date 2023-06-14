@@ -34,3 +34,10 @@ dishes_col.drop()
 meals_col.drop()
 diets_col.drop()
 counters_col.drop()
+
+# print('readding schema')
+# db = client["food"]
+# dishes_col = db["dishes"]  # TODO: dish the dish
+# meals_col = db["meals"]
+# diets_col = db["diets"]
+# counters_col = db["counter"]

@@ -21,7 +21,7 @@ app = Flask(__name__)  # initialize Flask
 api = Api(app)  # create API
 ninja_api_key = 'GZhBLJkOriPZwhCOJlOdHg==UEeUzdzoKypBxfto'
     #os.environ['NINJA_API_KEY']
-client = pymongo.MongoClient("mongodb://mongo:27017/")
+client = pymongo.MongoClient("mongodb://mongo:27017")
 
 # initializing the database
 db = client["food"]
@@ -531,7 +531,7 @@ api.add_resource(Meals, '/meals')
 api.add_resource(MealsId, '/meals/<int:idx>')
 api.add_resource(MealsName, '/meals/<string:name>')
 
-# if __name__ == '__main__':
-#     print(f"Running Meals&Dishes server ({__file__})")
+if __name__ == '__main__':
+    print(f"Running Meals&Dishes server ({__file__})")
 #     app.run(host='http://127.0.0.1', port=5001, debug=True)
 

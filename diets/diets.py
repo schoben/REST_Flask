@@ -102,6 +102,6 @@ class DietsName(Resource):
 api.add_resource(Diets, '/diets')
 api.add_resource(DietsName, '/diets/<string:name>')
 
-# if __name__ == '__main__':
-#     print(f"Running Diets server ({__file__})")
+if __name__ == '__main__':
+    print(f"Running Diets server ({__file__})")
 #     app.run(host='0.0.0.0', port=5002, debug=True)

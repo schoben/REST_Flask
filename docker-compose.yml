@@ -16,23 +16,24 @@ services:
       - 80
     depends_on:
       - mongo
-#      - diet-service
-#  diet-service:
-#    build: ./diets  # path is relative to docker-compose-shorthand.yml location
-#    restart: always   # possible values for restart are:  "no", always, on-failure, unless-stopped
-#    volumes:
-#      - type: bind
-#        source: ./diets #host directory
-#        target: /diet # container directory
-#    environment:
-#      FLASK_DEBUG: "true"
-#    ports:
-#      - "5002:80"  # host:container
-#    expose:
-#      - 80
-#    depends_on:
-#      - mongo
+      - diet-service
+  diet-service:
+    build: ./diets  # path is relative to docker-compose-shorthand.yml location
+    restart: always   # possible values for restart are:  "no", always, on-failure, unless-stopped
+    volumes:
+      - type: bind
+        source: ./diets #host directory
+        target: /diet # container directory
+    environment:
+      FLASK_DEBUG: "true"
+    ports:
+      - "5002:80"  # host:container
+    expose:
+      - 80
+    depends_on:
+      - mongo
   mongo:
+    container_name: 'mongo'
     image: mongo:latest
     ports:
       - 27017:27017

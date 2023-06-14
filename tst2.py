@@ -8,7 +8,7 @@ import json
 
 
 # Sources paths
-port = '5000'
+port = '5002'
 root = 'http://127.0.0.1:' + port
 diets = root + '/diets'
 header = {'Content-Type': 'application/json'}
