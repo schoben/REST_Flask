@@ -19,14 +19,15 @@ import traceback
 # TODO: extract to a function
 app = Flask(__name__)  # initialize Flask
 api = Api(app)  # create API
-ninja_api_key = os.environ['NINJA_API_KEY']
-client = pymongo.MongoClient("localhost", 27017)
+ninja_api_key = 'GZhBLJkOriPZwhCOJlOdHg==UEeUzdzoKypBxfto'
+    #os.environ['NINJA_API_KEY']
+client = pymongo.MongoClient("mongodb://mongo:27017/")
 
 # initializing the database
 db = client["food"]
 dishes_col = db["dishes"]  # TODO: dish the dish
 meals_col = db["meals"]
-diets_col = db["diets"]
+# diets_col = db["diets"]
 counters_col = db["counter"]
 
 # TODO export to a function
@@ -250,7 +251,7 @@ class DishesId(Resource):
         print(f"Getting a dish by index {idx}")
         idx = int(idx)
         try:
-            dish = dishes_col.find_one({'id': idx})
+            dish = dishes_col.find_one({'ID': idx})
             del dish['_id']
             return dish
             # return dishes_collection.get_dish_by_idx(idx).get_as_dict(), 200  # TODO: remove line
@@ -260,13 +261,13 @@ class DishesId(Resource):
     def delete(self, idx):
         idx = int(idx)
         try:
-            deleted = dishes_col.delete_one({'id': idx})
+            deleted = dishes_col.delete_one({'ID': idx})
             if deleted != 1:
                 print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
             # dishes_collection.delete_dish_by_idx(idx)
             return idx, 200
         except KeyError:
-            return  -5, 404
+            return -5, 404
 
 
 class DishesName(Resource):
@@ -286,9 +287,9 @@ class DishesName(Resource):
         try:
             dish = self.get(name)
             print(f"Got a dish: {dish}")
-            idx = dish['id']
+            idx = dish['ID']
             
-            deleted = dishes_col.delete_one({'id': idx})
+            deleted = dishes_col.delete_one({'ID': idx})
             if deleted != 1:
                 print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
             ''''
@@ -530,7 +531,7 @@ api.add_resource(Meals, '/meals')
 api.add_resource(MealsId, '/meals/<int:idx>')
 api.add_resource(MealsName, '/meals/<string:name>')
 
-if __name__ == '__main__':
-    print(f"Running Meals&Dishes server ({__file__})")
-    app.run(host='http://127.0.0.1', port=8000, debug=True)
+# if __name__ == '__main__':
+#     print(f"Running Meals&Dishes server ({__file__})")
+#     app.run(host='http://127.0.0.1', port=5001, debug=True)
 
