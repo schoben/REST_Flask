@@ -427,6 +427,9 @@ class Meals(Resource):
             return -1, 422
         try:
             name = args['name']
+            meals = meals_col.find_one({'name': name})
+            if meals is not None:
+                return -2, 422
             appetizer = args['appetizer']
             main = args['main']
             dessert = args['dessert']
