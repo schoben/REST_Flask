@@ -416,12 +416,15 @@ class Meals(Resource):
     def post(self):
         print(f"meals post invoke")
         parser = reqparse.RequestParser()
-        parser.add_argument('name', required=True)
-        parser.add_argument('appetizer', required=True, type=int)
-        parser.add_argument('main', required=True, type=int)
-        parser.add_argument('dessert', required=True, type=int)
-        args = parser.parse_args()
-        print(args)
+        try:
+            parser.add_argument('name', required=True)
+            parser.add_argument('appetizer', required=True, type=int)
+            parser.add_argument('main', required=True, type=int)
+            parser.add_argument('dessert', required=True, type=int)
+            args = parser.parse_args()
+            print(args)
+        except Exception as e:  # narrow down type
+            return -1, 422
         try:
             name = args['name']
             appetizer = args['appetizer']
