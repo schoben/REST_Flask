@@ -54,6 +54,10 @@ res = post_diet('medium', 2000, 500, 50)
 print_res(res)
 verify_res_code(res, 201)
 
+print(f"Test: getting a 'fake' diet. Should return 'Diet fake not found' with code 404")
+res = get_diet_by_name('fake')
+print_res(res)
+
 print(f"Test: Adding'health' diet again. Should return 'Diet with health already exists' with code 422")
 res = post_diet('health', 2000, 200, 50)
 print_res(res)
@@ -71,6 +75,17 @@ verify_res_code(res, 422)
 #
 print(f"Test: retrieve diet by name, should return json for health, 200")
 res = get_diet_by_name('health')
+print_res(res)
+
+root = 'http://127.0.0.1:' + '80'
+print(f"Test: get meals with diet by name, should empty json array, 200")
+meals = root + '/meals'
+res = requests.get(meals+'?diet=health')
+print_res(res)
+
+print(f"Test: get meals with diet by name, should json array with meals, 200")
+meals = root + '/meals'
+res = requests.get(meals+'?diet=medium')
 print_res(res)
 
 #TODO test missing application json if time permits - post request on diets resource

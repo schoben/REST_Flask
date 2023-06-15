@@ -6,7 +6,7 @@ Creating a server docker image implementing a REST API
 # Built-in imports
 import os
 from collections import namedtuple
-
+import flask
 # pip imports
 from flask import Flask  # , jsonify
 from flask_restful import Resource, Api, reqparse
@@ -14,7 +14,7 @@ import requests
 import pymongo
 import traceback
 
-
+HEADERS = ('Content-Type', 'application/json')
 # Setting up global variables
 # TODO: extract to a function
 app = Flask(__name__)  # initialize Flask
@@ -57,7 +57,7 @@ DishValues = namedtuple('DishValues', ['size', 'cal', 'sugar', 'sodium'])
 
 
 # TODO: move following two function to a different module. Consider encapsulating in a class
-def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized) 
+def query_ninja(query):  # TODO: Deal with failures (no connection, unrecognized)
     api_url = 'https://api.api-ninjas.com/v1/nutrition?query={}'.format(query)
     response = requests.get(api_url, headers={'X-Api-Key': ninja_api_key}) 
     print(f"Got the following response from Ninja: {response} {response.json()}")
@@ -93,7 +93,6 @@ def parse_cursor(cursor):
 # TODO: Move these two classes to a separate module (decouple), together with Meal and MealsCollection
 class Dish:
     """Class representing a single dish"""
-
     def __init__(self, name, idx):
         self.idx = idx
         self.name = name
@@ -177,6 +176,8 @@ class Dishes(Resource):
 
     def post(self):
         # TODO: verify the JSON header. return 0 and status 415 (slide 13)
+        if HEADERS not in flask.request.headers.items():
+            return 0, 415
         print("Adding a dish")
         parser = reqparse.RequestParser()
         parser.add_argument('name')
@@ -255,42 +256,57 @@ class DishesId(Resource):
     def get(self, idx):
         print(f"Getting a dish by index {idx}")
         idx = int(idx)
-        try:
-            dish = dishes_col.find_one({'ID': idx})
-            del dish['_id']
-            return dish
-            # return dishes_collection.get_dish_by_idx(idx).get_as_dict(), 200  # TODO: remove line
-        except KeyError:
+        dish = dishes_col.find_one({'ID': idx})
+        if dish is None:
             return -5, 404
+        del dish['_id']
+        return dish
 
     def delete(self, idx):
         idx = int(idx)
-        try:
-            deleted = dishes_col.delete_one({'ID': idx})
-            if deleted != 1:
-                print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
-            # dishes_collection.delete_dish_by_idx(idx)
-            return idx, 200
-        except KeyError:
+        deleted = dishes_col.delete_one({'ID': idx})
+        if deleted.deleted_count == 0:
+            print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
             return -5, 404
+        update_deleted_dish(idx)
+        return idx, 200
+
+
+
+def update_deleted_dish(idx):
+    meals = meals_col.find()
+    meals = list(meals)
+    for meal in meals:
+        '''
+        if meal['appetizer'] == idx:
+            meal['appetizer'] = None
+        if meal['main'] == idx:
+            meal['main'] = None
+        if meal['dessert'] == idx:
+            meal['dessert'] = None
+        '''
+        appetizer = meal['appetizer'] if meal['appetizer'] != idx else None
+        main = meal['main'] if meal['main'] != idx else None
+        dessert = meal['dessert'] if meal['dessert'] != idx else None
+        meal_obj = Meal(meal['name'], meal['ID'], appetizer, main, dessert)
+        meals_col.update_one({'ID': meal['ID']}, {'$set': meal_obj.get_as_dict()})
 
 
 class DishesName(Resource):
     """RESTful API for dealing with dishes/name resources"""
 
     def get(self, name):
-        try:
-            dish = dishes_col.find_one({'name': name})
-            del dish['_id']
-            return dish
-            #return dishes_collection.get_dish_by_name(name).get_as_dict()  # TODO: Add response value
-        except ValueError as e:
-            print(str(e))
+        dish = dishes_col.find_one({'name': name})
+        if dish is None:
             return -5, 404
+        del dish['_id']
+        return dish
 
     def delete(self, name):
         try:
             dish = self.get(name)
+            if isinstance(dish, tuple):
+                return dish  # HACK: the 'dish' here is in fact the desired response.
             print(f"Got a dish: {dish}")
             idx = dish['ID']
             
@@ -302,6 +318,7 @@ class DishesName(Resource):
             idx = dish._get_idx()
             dishes_collection.delete_dish_by_idx(idx)
             '''
+            update_deleted_dish(idx)
             return idx, 200
         except ValueError:
             return -5, 404
@@ -414,16 +431,24 @@ class Meals(Resource):
     """RESTful API for the meals resource"""
 
     def post(self):
+        if HEADERS not in flask.request.headers.items():
+            return 0, 415
         print(f"meals post invoke")
         parser = reqparse.RequestParser()
-        parser.add_argument('name', required=True)
-        parser.add_argument('appetizer', required=True, type=int)
-        parser.add_argument('main', required=True, type=int)
-        parser.add_argument('dessert', required=True, type=int)
-        args = parser.parse_args()
-        print(args)
+        try:
+            parser.add_argument('name', required=True)
+            parser.add_argument('appetizer', required=True, type=int)
+            parser.add_argument('main', required=True, type=int)
+            parser.add_argument('dessert', required=True, type=int)
+            args = parser.parse_args()
+            print(args)
+        except Exception as e:  # narrow down type
+            return -1, 422
         try:
             name = args['name']
+            meals = meals_col.find_one({'name': name})
+            if meals is not None:
+                return -2, 422
             appetizer = args['appetizer']
             main = args['main']
             dessert = args['dessert']
@@ -451,6 +476,8 @@ class Meals(Resource):
         if args['diet']:
             diet = args['diet']
             res = requests.get(f'http://{DIETS}:{PORT}/{RESOURCE}/{diet}')
+            if not res:
+                return f'Diet {diet} not found', 404
             diet_dict = res.json()
             relevant_meals = []
             all_meals = parse_cursor(meals_col.find())
@@ -459,7 +486,7 @@ class Meals(Resource):
                         and meal['sugar'] <= diet_dict['sugar']:
                     relevant_meals.append(meal)
             #assuming under the values
-            return relevant_meals
+            return relevant_meals, 200
         else:
             print(f"Getting all meals")
             meals = parse_cursor(meals_col.find())
@@ -475,19 +502,19 @@ class MealsId(Resource):
         idx = int(idx)
         print('MealsId Get invoked')
         print(type(idx))
-        try:
-            meal = meals_col.find_one({'ID': idx})
-            del meal['_id']# TODO: Except KeyError
-            print(f"Retrieved a meal by the meals/id resource for idx {idx}: {meal}")
-            return meal, 200
-        except KeyError:
+        meal = meals_col.find_one({'ID': idx})
+        if meal is None:
             return -5, 404
+        del meal['_id']# TODO: Except KeyError
+        print(f"Retrieved a meal by the meals/id resource for idx {idx}: {meal}")
+        return meal, 200
 
     def delete(self, idx):  # TODO: Add failure. reponse -5, code 404
         try:
             deleted = meals_col.delete_one({'ID': idx})
-            if deleted != 1:
+            if deleted.deleted_count == 0:
                 print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
+                return -5, 404
             else:
                 print('deleted successfully')
             return idx, 200
@@ -512,6 +539,8 @@ class MealsId(Resource):
             print(f"Updating a meal. Name: {name}, idx: {idx}, appetizer: {appetizer}, dessert: {dessert}")
             #below meal for debugging only
             meal = meals_col.find_one({'ID': idx})
+            if meal is None:
+                return -5, 404
             print(meal)
             # del meal['_id']
             meal = Meal(name=name, appetizer=appetizer, main=main, dessert=dessert, idx=idx).get_as_dict()
@@ -522,26 +551,32 @@ class MealsId(Resource):
         except KeyError as e:  # TODO: What errors may we catch here? How to handle them?
             print(f"Invalid key: {e}")
             return -6, 422  # Verify this is correct for the `put` API
+        except Exception as e:
+            return -6, 422
 
 
 class MealsName(Resource):
     """Class for the REST API of means/name"""
 
     def get(self, name):  # TODO: Add failure. reponse -5, code 404
-        try:
-            meal = meals_col.find_one({'name': name})
-            del meal['_id']
-            print(f"Retrieved a meal by the meals/name resource for name {name}: {meal}")
-            return meal, 200
-        except ValueError:
+        meal = meals_col.find_one({'name': name})
+        if meal is None:
             return -5, 404
+        del meal['_id']
+        print(f"Retrieved a meal by the meals/name resource for name {name}: {meal}")
+        return meal, 200
 
     def delete(self, name):  # TODO: Add failure. reponse -5, code 404
         try:
+            meal = meals_col.find_one({'name': name})
+            if meal is None:
+                return -5, 404
+            idx = meal['ID']
             deleted = meals_col.delete_one({'name': name})
-            if deleted != 1:
+            if deleted.deleted_count == 0:
                 print(f"WARNING: When deleting name {name} {deleted.deleted_count} items were deleted")
-            return name, 200
+                return -5, 404
+            return idx, 200
         except ValueError:
             return -5, 404
 

@@ -58,6 +58,14 @@ print(f"Printing all existing dishes at this point:")
 print_res(get_all_dishes())
 
 
+#Adding a meal with missing parameter
+print(f"Adding a meal with a missing parameter. Should return 422!")
+meals = root + '/meals'
+basic_meal = json.dumps({'name': 'basic', 'appetizer': 0, 'main': 1})
+res = requests.post(meals, headers=header, data=basic_meal)
+print_res(res)
+
+
 #Adding a first meal
 print(f"Adding a meal. Should return 0")
 meals = root + '/meals'
@@ -108,6 +116,14 @@ print(f"Getting meal by name 'basic'")
 res = get_meal('basic')
 print_res(res)
 print()
+
+
+# Trying to re-adding the 'basic' meal
+print(f"Trying to re-add the 'basic' meal. Should return 422")
+meals = root + '/meals'
+basic_meal = json.dumps({'name': 'basic', 'appetizer': 0, 'main': 1, 'dessert': 2})
+res = requests.post(meals, headers=header, data=basic_meal)
+print_res(res)
 
 #
 # Delete meal by index

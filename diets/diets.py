@@ -72,14 +72,16 @@ class DietsName(Resource):
     """RESTful API for dealing with dishes/name resources"""
 
     def get(self, name):
-        try:
-            diet = diets_col.find_one({'name': name})
-            del diet['_id']
-            return diet, 200
-            # return dishes_collection.get_dish_by_name(name).get_as_dict()  # TODO: Add response value
-        except ValueError as e:
-            print(str(e))
+        # try:
+        diet = diets_col.find_one({'name': name})
+        if not diet:
             return f'Diet {name} not found', 404
+        del diet['_id']
+        return diet, 200
+            # return dishes_collection.get_dish_by_name(name).get_as_dict()  # TODO: Add response value
+        # except ValueError as e:
+        #     print(str(e))
+        #     return f'Diet {name} not found', 404
 
     # def delete(self, name):
     #     try:
