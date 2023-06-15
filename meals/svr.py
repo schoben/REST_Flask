@@ -451,6 +451,8 @@ class Meals(Resource):
         if args['diet']:
             diet = args['diet']
             res = requests.get(f'http://{DIETS}:{PORT}/{RESOURCE}/{diet}')
+            if not res:
+                return f'Diet {diet} not found', 404
             diet_dict = res.json()
             relevant_meals = []
             all_meals = parse_cursor(meals_col.find())
@@ -459,7 +461,7 @@ class Meals(Resource):
                         and meal['sugar'] <= diet_dict['sugar']:
                     relevant_meals.append(meal)
             #assuming under the values
-            return relevant_meals
+            return relevant_meals, 200
         else:
             print(f"Getting all meals")
             meals = parse_cursor(meals_col.find())
