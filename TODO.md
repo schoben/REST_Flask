@@ -1,11 +1,8 @@
 What to do next?
 
 
-Also need:
-* Go over TODO statements and remove whatever we can
-
 If time permits:
-* Test ninja failure (invalid dish name, no connectivity)
+* Test ninja for no connectivity
 
 
 

@@ -66,6 +66,10 @@ res = post_dish('fish')
 print_res(res)
 verify_res_code(res, 201)
 
+print(f"Adding an invalid dish ('zish')")
+res = post_dish('zish')
+print_res(res)
+verify_res_code(res, 422)
 
 print(f"Test 2#: Adding a 'chips' dish. Should return 1 (index of the dish) with code 201")
 res = post_dish('chips')
