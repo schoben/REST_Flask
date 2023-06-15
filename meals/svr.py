@@ -6,7 +6,7 @@ Creating a server docker image implementing a REST API
 # Built-in imports
 import os
 from collections import namedtuple
-
+import flask
 # pip imports
 from flask import Flask  # , jsonify
 from flask_restful import Resource, Api, reqparse
@@ -14,7 +14,7 @@ import requests
 import pymongo
 import traceback
 
-
+HEADERS = ('Content-Type', 'application/json')
 # Setting up global variables
 # TODO: extract to a function
 app = Flask(__name__)  # initialize Flask
@@ -93,7 +93,6 @@ def parse_cursor(cursor):
 # TODO: Move these two classes to a separate module (decouple), together with Meal and MealsCollection
 class Dish:
     """Class representing a single dish"""
-
     def __init__(self, name, idx):
         self.idx = idx
         self.name = name
@@ -177,6 +176,8 @@ class Dishes(Resource):
 
     def post(self):
         # TODO: verify the JSON header. return 0 and status 415 (slide 13)
+        if HEADERS not in flask.request.headers.items():
+            return 0, 415
         print("Adding a dish")
         parser = reqparse.RequestParser()
         parser.add_argument('name')
@@ -414,6 +415,8 @@ class Meals(Resource):
     """RESTful API for the meals resource"""
 
     def post(self):
+        if HEADERS not in flask.request.headers.items():
+            return 0, 415
         print(f"meals post invoke")
         parser = reqparse.RequestParser()
         try:
