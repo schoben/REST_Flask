@@ -111,10 +111,8 @@ verify_res_code(res, 200)
 assert res.text.rstrip() == '0'
 
 
+### Uncommenting tests
 
-
-
-'''
 print(f"Test 3#: Deleting the whole dishes resource. Should give an error with code 405")
 res = requests.delete(dishes)
 print_res(res)
@@ -122,8 +120,8 @@ verify_res_code(res, 405)
 
 
 
-print(f"Test 6#: Getting dish of index 2. Should return -5 with code 404")
-res = get_dish_by_idx('2')
+print(f"Test 6#: Getting dish of index 9. Should return -5 with code 404")
+res = get_dish_by_idx('9')
 print_res(res)
 verify_res_code(res, 404)
 assert res.text.rstrip() == "-5"  # TODO: why do we need rstrip? Why do we have a linebreak in the reponse?
@@ -136,18 +134,14 @@ verify_res_code(res, 404)
 assert res.text.rstrip() == '-5'
 
 
-
-
-print("Dish list should now be empty")
+print("Listing all dishes")
 res = get_all_dishes()
 print_res(res)
 verify_res_code(res, 200)
 
 
-
-
-print(f"Test 10#: Deleting a dish of index 3. Should return -5 with status 404.")
-response = delete_dish_by_idx('3')
+print(f"Test 10#: Deleting a dish of index 9. Should return -5 with status 404.")
+response = delete_dish_by_idx('9')
 print_res(response)
 verify_res_code(response, 404)
 assert response.text.rstrip() == '-5'
@@ -176,7 +170,15 @@ print_res(get_all_dishes())
 print(f"Adding a meal. Should return 1")
 meals = root + '/meals'
 header = {'Content-Type': 'application/json'}
-basic_meal = json.dumps({'name': 'basic', 'appetizer': 3, 'main': 4, 'dessert': 5})
+basic_meal = json.dumps({'name': 'basic', 'appetizer': 2, 'main': 3, 'dessert': 4})
+res = requests.post(meals, headers=header, data=basic_meal)
+print_res(res)
+
+
+print(f"Adding a meal. Should return 1")
+meals = root + '/meals'
+header = {'Content-Type': 'application/json'}
+basic_meal = json.dumps({'name': 'basic2', 'appetizer': 2, 'main': 3, 'dessert': 4})
 res = requests.post(meals, headers=header, data=basic_meal)
 print_res(res)
 
@@ -237,7 +239,7 @@ print_res(res)
 print()
 
 
-alt_dish = json.dumps({'name': 'alt', 'appetizer': 6, 'main': 7, 'dessert': 8})
+alt_dish = json.dumps({'name': 'alt', 'appetizer': 5, 'main': 6, 'dessert': 7})
 print(f"Adding an 'alt' meal: {alt_dish}")
 res = requests.post(meals, headers=header, data=alt_dish)
 print_res(res)
@@ -273,14 +275,14 @@ print()
 
 
 # Test for getting a meal with invalid id
-print(f"Testing meals/get on invalid index. Should return -5 and code 404")
+print(f"Testing meals/delete on invalid index. Should return -5 and code 404")
 res = delete_meal('7')
 print_res(res)
 print()
 
 
 # Test for getting a meal with invalid name
-print(f"Testing meals/get on invalid name. Should return -5 and code 404")
+print(f"Testing meals/delete on invalid name. Should return -5 and code 404")
 res = delete_meal('Italian Monday')
 print_res(res)
 print()
@@ -303,9 +305,30 @@ def update_meal(idx, name, appetizer, main, dessert):
     return requests.put(meals + '/' + idx, headers=header, data=load)
 
 
+print(f"Printing all dishes")
+res = get_all_dishes()
+print_res(res)
+verify_res_code(res, 200)
+
+
+
+# Getting a meal by name
+print(f"Getting meal by name 'basic2'")
+res = get_meal('basic2')
+print_res(res)
+print()
+
+
 # Updating an existing meal with put
-print(f"Updating the 'basic' meal")
-res = update_meal('3', 'basic_updated', 3, 4, 8)
+print(f"Updating the 'basic2' meal")
+res = update_meal('3', 'basic_updated', 3, 4, 7)
+print_res(res)
+print()
+
+
+# Getting a meal by name
+print(f"Getting the update meal (basic_updated)")
+res = get_meal('basic_updated')
 print_res(res)
 print()
 
@@ -319,7 +342,7 @@ res = requests.post(meals, headers=header, data=basic_meal)
 
 # Updating an invalid meal with put
 print(f"Updating a non-existing meal")
-res = update_meal('7', 'basic_updated', 3, 4, 8)
+res = update_meal('7', 'basic_updated', 3, 4, 7)
 print_res(res)
 print()
 
@@ -335,13 +358,13 @@ print()
 
 print(f"Deleting a dish that is already a part of a meal")
 
-print(f"We delete the dessert of the 'basic_updated' meal")
+print(f"We will change t5he basic_updated meal")
 res = get_meal('basic_updated')
 print_res(res)
 print()
 
-print(f"We now delete dish with index 8")
-res = delete_dish_by_idx('8')
+print(f"We now delete dish with index 7")
+res = delete_dish_by_idx('7')
 print_res(res)
 print()
 
@@ -349,5 +372,4 @@ print(f"Let's see how this affected the meal:")
 res = get_meal('basic_updated')
 print_res(res)
 print()
-'''
 

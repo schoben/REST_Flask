@@ -2,12 +2,10 @@ What to do next?
 
 
 Also need:
-* Make sure return values are the same as specified in the assignment
-* Fix mistakes from ex1
-* Verify that it is possible to 'connect' to the containers so they can be killed (in testing)
 * Go over TODO statements and remove whatever we can
-* write some test for diets + meals combo
 
+If time permits:
+* Test ninja failure (invalid dish name, no connectivity)
 
 
 
@@ -15,10 +13,8 @@ Also need:
 ### FROM EX1
 
 # Major
-* Deal with deletion of a dish that is already a part of a meal
 * Test for a dish with impossible name
-* Write a Dockerfile to wrap the server
-    - Make port configurable
+* Make port configurable
 * How do we pass the API-Ninja API Key to the docker?
 
 # Minor
