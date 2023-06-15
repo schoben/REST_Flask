@@ -26,7 +26,7 @@ client = pymongo.MongoClient("mongodb://mongo:27017")
 
 # initializing the database
 db = client["food"]
-dishes_col = db["dishes"]  # TODO: dish the dish
+dishes_col = db["dishes"]
 meals_col = db["meals"]
 # diets_col = db["diets"]
 counters_col = db["counter"]
@@ -42,14 +42,6 @@ if counters is None:
     counters_col.insert_one({'_id': 0, 'dishes': 0, 'meals': 0})
 else:
     print(f"Found counters: {counters}")
-
-'''
-dishes_idx = counters.get('dishes', 0)
-meals_idx = counters.get('meals', 0)
-diets_idx = counters.get('diets', 0)
-mydict = {'_id': 0, 'dish_idx': dishes_idx, 'meals_idx': meals_idx, 'diets_idx': diets_idx}
-counter_col.insert_one(mydict)  # TODO: use update instead of insert
-'''
 
 
 # Creating a namedtuple for storing dish values
@@ -122,52 +114,6 @@ class Dish:
         return {'name': self.name, 'ID': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
 
 
-# class DishesCollection:
-#     """Collection class of all the dishes"""
-#
-#     def __init__(self):
-#         self.dishes = dict()
-#         self.num_of_dishes = 0
-#
-#     def _get_all_dishes(self):
-#         return {idx: dish.get_as_dict() for idx, dish in self.dishes.items()}
-#
-#     def get_dish_by_idx(self, idx):
-#         return self.dishes[idx]
-#
-#     def get_dish_by_name(self, name):
-#         for _, dish in self.dishes.items():  # Use .values() instead
-#             if dish._get_name() == name:
-#                 return dish
-#         raise ValueError(f"Couldn't find a dish that goes by the name {name}")
-#
-#     def dish_exists(self, name):
-#         '''func that checks if the dish exists in the db'''
-#         try:
-#             self.get_dish_by_name(name)
-#             return True
-#         except ValueError:
-#             return False
-#
-#     def add_dish(self, name):
-#         print(f"Adding to Dishes: name {name}, idx: {self.num_of_dishes}")
-#         dish = Dish(name, self.num_of_dishes + 1)
-#         self.num_of_dishes += 1  # No support for concurrency
-#         self.dishes[self.num_of_dishes] = dish
-#         return self.num_of_dishes
-#
-#     def delete_dish_by_idx(self, idx):
-#         dish = self.dishes.pop(idx)  # removing the dish from the DishesCollection
-#         meals_col.remove_dish(idx)
-#         del dish  # removing the deleted dish from memory
-#
-#     def get_dish_idx_by_name(self, name):
-#         dish = self.get_dish_by_name(name)
-#         return dish._get_idx()
-#
-#
-# dishes_collection = DishesCollection()  # Global dishes collection
-
 class Dishes(Resource):
     """A Class implementing a REST API for dealing with Dishes"""
 
@@ -193,18 +139,13 @@ class Dishes(Resource):
             return -2, 422  # TODO: verify that this is the correct return code
 
         try:
-            # idx = dishes_collection.add_dish(dish_name)
-            # TODO: make sure we refer to the right variable '_id'
-
             # Getting the index of current dish
             idx = counters_col.find_one({"_id": 0})["dishes"]
             print(f"Creating a dish object")
             dish = Dish(dish_name, idx)
             dish_dict = dish.get_as_dict()
             print(f"Adding the following to DB: {dish_dict}")
-            # TODO: probably pass dish_dict instead of the dict below
             result = dishes_col.insert_one(dish_dict)
-            # result = dishes_col.insert_one({"_id": idx, "name": dish_name})
             print(f"added the {dish_name} dish as index {idx}")
             counters_col.update_one({"_id": 0}, {"$set": {'dishes': idx + 1}})
             print(f"Updated the index")
@@ -218,36 +159,6 @@ class Dishes(Resource):
 
     def delete(self):  # Can we simply remove this and get the same functionality?
         return "This method is not allowed for the requested URL", 405
-
-
-'''
-class Dishes(Resource):
-    """A Class implementing a REST API for dealing with Dishes"""
-
-    def get(self):
-        return dishes_collection._get_all_dishes(), 200
-
-    def post(self):
-        # TODO: verify the JSON header. return 0 and status 415 (slide 13)
-        parser = reqparse.RequestParser()
-        parser.add_argument('name')
-        args = parser.parse_args()
-        dish_name = args['name']
-        if dish_name is None: 
-            return -1, 422
-        if dishes_collection.dish_exists(dish_name):
-            return -2, 422  # Dish name already exists
-        try:
-            idx = dishes_collection.add_dish(dish_name)
-        except ValueError:
-            return -3, 422
-        except Exception:  # Specify Exception type
-            return -4, 504
-        return idx, 201
-
-    def delete(self):  # Can we simply remove this and get the same functionality?
-        return "This method is not allowed for the requested URL", 405
-'''
 
 
 class DishesId(Resource):
@@ -277,14 +188,6 @@ def update_deleted_dish(idx):
     meals = meals_col.find()
     meals = list(meals)
     for meal in meals:
-        '''
-        if meal['appetizer'] == idx:
-            meal['appetizer'] = None
-        if meal['main'] == idx:
-            meal['main'] = None
-        if meal['dessert'] == idx:
-            meal['dessert'] = None
-        '''
         appetizer = meal['appetizer'] if meal['appetizer'] != idx else None
         main = meal['main'] if meal['main'] != idx else None
         dessert = meal['dessert'] if meal['dessert'] != idx else None
@@ -313,11 +216,6 @@ class DishesName(Resource):
             deleted = dishes_col.delete_one({'ID': idx})
             if deleted != 1:
                 print(f"WARNING: When deleting index {idx} {deleted.deleted_count} items were deleted!")
-            ''''
-            dish = dishes_collection.get_dish_by_name(name)
-            idx = dish._get_idx()
-            dishes_collection.delete_dish_by_idx(idx)
-            '''
             update_deleted_dish(idx)
             return idx, 200
         except ValueError:
@@ -382,51 +280,6 @@ class Meal:
         self.update_nutritional_vals()
 
 
-# class MealsCollection:
-#     """Class representing a collection of meals"""
-#
-#     def __init__(self):
-#         self.num_of_meals = 0
-#         self.meals = dict()
-#
-#     def add_meal(self, name, appetizer, main, dessert):
-#         self.num_of_meals += 1  # No concurrency support.  # TODO: failing to create a meal with result in an unused idx
-#         meal = Meal(name, self.num_of_meals, appetizer, main, dessert)
-#         self.meals[self.num_of_meals] = meal
-#         return self.num_of_meals  # The index of the meal
-#
-#     def get_all_meals(self):
-#         meals_json = {idx: meal.get_as_dict() for idx, meal in self.meals.items()}
-#         return meals_json
-#
-#     def get_meal_by_idx(self, idx):
-#         return self.meals[idx]
-#
-#     def get_meal_by_name(self, name):
-#         print(f"Looking for meal named {name} in {len(self.meals.keys())} meals..")
-#         for _, meal in self.meals.items():  # TODO: Use .values() instead of .items()
-#             if meal.get_name() == name:
-#                 return meal
-#         raise ValueError(f"Couldn't find a meal named {name}")
-#
-#     def delete_meal_by_idx(self, idx):
-#         meal = self.meals.pop(idx)
-#         del meal
-#
-#     def delete_meal_by_name(self, name):
-#         meal = self.get_meal_by_name(name)
-#         idx = meal.get_idx()
-#         del self.meals[idx]
-#         return idx
-#
-#     def remove_dish(self, idx):
-#         for meal in self.meals.values():
-#             meal.remove_dish(idx)
-
-
-#meals_col = MealsCollection()
-
-
 class Meals(Resource):
     """RESTful API for the meals resource"""
 
@@ -458,15 +311,13 @@ class Meals(Resource):
             meal = Meal(name=name, appetizer=appetizer, main=main, dessert=dessert, idx=idx)
             meal_dict = meal.get_as_dict()
             print(f"Adding a meal. Name: {name}, appetizer: {appetizer}, main: {main} dessert: {dessert}")
-            # print(dishes_collection._get_all_dishes())
             result = meals_col.insert_one(meal_dict)
             print(f"added the {name} dish as index {idx}")
             counters_col.update_one({"_id": 0}, {"$set": {'meals': idx + 1}})
-            #meals_col.insert_one({'name': name, 'appetizer': appetizer, 'main': main, 'dessert': dessert})
             return idx, 201
         except KeyError as e:
             print(f"Invalid key: {e}")
-            #traceback.print_exc()
+            # traceback.print_exc()
             return -6, 422
 
     def get(self):
@@ -498,18 +349,18 @@ class Meals(Resource):
 class MealsId(Resource):
     """Class for the REST API of means/name"""
 
-    def get(self, idx):  # TODO: Add failure. reponse -5, code 404
+    def get(self, idx):
         idx = int(idx)
         print('MealsId Get invoked')
         print(type(idx))
         meal = meals_col.find_one({'ID': idx})
         if meal is None:
             return -5, 404
-        del meal['_id']# TODO: Except KeyError
+        del meal['_id']
         print(f"Retrieved a meal by the meals/id resource for idx {idx}: {meal}")
         return meal, 200
 
-    def delete(self, idx):  # TODO: Add failure. reponse -5, code 404
+    def delete(self, idx):
         try:
             deleted = meals_col.delete_one({'ID': idx})
             if deleted.deleted_count == 0:
@@ -537,20 +388,18 @@ class MealsId(Resource):
             main = args['main']
             dessert = args['dessert']
             print(f"Updating a meal. Name: {name}, idx: {idx}, appetizer: {appetizer}, dessert: {dessert}")
-            #below meal for debugging only
             meal = meals_col.find_one({'ID': idx})
             if meal is None:
                 return -5, 404
             print(meal)
-            # del meal['_id']
             meal = Meal(name=name, appetizer=appetizer, main=main, dessert=dessert, idx=idx).get_as_dict()
             del meal['ID']
             meals_col.update_one({'ID': idx}, {"$set": meal})
             print(meals_col.find_one({'ID': idx}))
             return idx, 200
-        except KeyError as e:  # TODO: What errors may we catch here? How to handle them?
+        except KeyError as e:
             print(f"Invalid key: {e}")
-            return -6, 422  # Verify this is correct for the `put` API
+            return -6, 422
         except Exception as e:
             return -6, 422
 
@@ -558,7 +407,7 @@ class MealsId(Resource):
 class MealsName(Resource):
     """Class for the REST API of means/name"""
 
-    def get(self, name):  # TODO: Add failure. reponse -5, code 404
+    def get(self, name):
         meal = meals_col.find_one({'name': name})
         if meal is None:
             return -5, 404
@@ -566,7 +415,7 @@ class MealsName(Resource):
         print(f"Retrieved a meal by the meals/name resource for name {name}: {meal}")
         return meal, 200
 
-    def delete(self, name):  # TODO: Add failure. reponse -5, code 404
+    def delete(self, name):
         try:
             meal = meals_col.find_one({'name': name})
             if meal is None:
