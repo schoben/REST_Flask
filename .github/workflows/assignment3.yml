@@ -1,1 +1,24 @@
 # Insert CI here
+
+
+
+# Step 1: build job
+# `log.txt`:Log time & date by the specified format (What's the format?)
+# `log.txt`:Log the submission names
+# build the docker image (named 'flask') using `docker build -t flask .`
+# `log.txt`: 'image successfully build' / 'image not able to be built'
+# Upload the built image as an artifact
+
+
+# Step 2: 
+# Run the image  (something similar to  # docker run --rm -p 8000:8000 flask`)
+  # `log.txt`: 'Container up and running' / 'Container failed to run'
+# Run the `tests/assn3_test.py` test file with PyTest
+  # `assn3_test_results.txt`: log the output for each of the tests
+  # `log.txt`: 'tests succeeded' / 'test failed' (single test fails -> fail), after completing all tests
+
+
+# Step 3: Query job
+# Run the image (should automatically read the 'query.txt' file as input)
+# `response.txt`: Log the responses for each of the queries in `query.txt`
+
