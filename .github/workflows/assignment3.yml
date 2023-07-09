@@ -13,7 +13,7 @@ jobs:
         - name: Log the current time and date
           run: touch log.txt; echo "`date -Iminutes`" >> log.txt
         - name: Log the submission names
-          run: echo "Ben & Avner" >> log.txt  # TODO: fill in with correct name format
+          run: echo "Ben Scholom, Avner Duchovni" >> log.txt
         - name: Upload log
           uses: actions/upload-artifact@v3
           with:
