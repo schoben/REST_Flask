@@ -13,9 +13,9 @@ jobs:
         - name: Log the submission names
           run: echo "Ben Scholom, Avner Duchovni" >> log.txt
         - name: Build the image
-          run: docker build -t flask ./nonexistant
+          run: docker build -t flask .
         - name: Log that building was successful
-          if: always()  # Check if image creation successful
+          if: always()
           run: |
             if docker inspect flask:latest >/dev/null 2>&1; then
               echo "image successfully built" >> log.txt
@@ -24,13 +24,11 @@ jobs:
             fi
         - name: Export image to .tar
           run: docker save -o flask.tar flask
-        - name: Confirm creation of image (if successful)
+        - name: Upload the exported image as artifact
           uses: actions/upload-artifact@v3
           with:
             name: flask
             path: flask.tar
-            # Currently we assume that building succeded
-            # if:  # check if flask.tar exists
         - name: Upload log
           if: always()
           uses: actions/upload-artifact@v3
@@ -41,25 +39,6 @@ jobs:
 
 #    test:
 
-#    run:
-
-
-
-
-
-
-# Insert CI here
-
-
-
-# Step 1: build job
-# `log.txt`:Log time & date by the specified format (What's the format?)
-# `log.txt`:Log the submission names
-# build the docker image (named 'flask') using `docker build -t flask .`
-# `log.txt`: 'image successfully built' / 'image not able to be built'
-# Upload the built image as an artifact
-
-
 # Step 2: 
 # Run the image  (something similar to  # docker run --rm -p 8000:8000 flask`)
   # `log.txt`: 'Container up and running' / 'Container failed to run'
@@ -67,6 +46,11 @@ jobs:
   # `assn3_test_results.txt`: log the output for each of the tests
   # `log.txt`: 'tests succeeded' / 'test failed' (single test fails -> fail), after completing all tests
 
+
+
+
+
+#    run:
 
 # Step 3: Query job
 # Run the image (should automatically read the 'query.txt' file as input)
