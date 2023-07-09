@@ -12,11 +12,6 @@ jobs:
           run: touch log.txt; echo "`date -Iminutes`" >> log.txt
         - name: Log the submission names
           run: echo "Ben Scholom, Avner Duchovni" >> log.txt
-        - name: Upload log
-          uses: actions/upload-artifact@v3
-          with:
-            name: log
-            path: log.txt
         - name: Build the image
           run: docker build -t flask .
         - name: Log that building was successful
@@ -36,6 +31,13 @@ jobs:
             path: flask.tar
             # Currently we assume that building succeded
             # if:  # check if flask.tar exists
+        - name: Upload log
+          uses: actions/upload-artifact@v3
+          with:
+            name: log
+            path: log.txt
+
+
 #    test:
 
 #    run:
