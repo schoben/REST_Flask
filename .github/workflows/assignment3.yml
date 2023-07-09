@@ -8,8 +8,6 @@ jobs:
         steps:
         - name: Checkout
           uses: actions/checkout@v3
-        # - name: Set DATE
-        #  run: echo "DATE=$(date -Iminutes)" >> $GITHUB_ENV
         - name: Log the current time and date
           run: touch log.txt; echo "`date -Iminutes`" >> log.txt
         - name: Log the submission names
@@ -19,6 +17,8 @@ jobs:
           with:
             name: log
             path: log.txt
+        - name: Build the image
+          run: docker build -t flask .; docker images
 
 #    test:
 
