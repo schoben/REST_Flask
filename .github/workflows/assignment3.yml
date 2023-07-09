@@ -21,7 +21,7 @@ jobs:
             else
               echo "image not able to be built" >> log.txt
             fi
-          if: # Check if image creation successful
+          if: always  # Check if image creation successful
         - name: Export image to .tar
           run: docker save -o flask.tar flask
         - name: Confirm creation of image (if successful)
