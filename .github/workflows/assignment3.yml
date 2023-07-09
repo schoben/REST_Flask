@@ -13,13 +13,13 @@ jobs:
         - name: Log the submission names
           run: echo "Ben Scholom, Avner Duchovni" >> log.txt
         - name: Build the image
-          run: docker build -t flask .
+          run: docker build -t flask ./nonexistant
         - name: Log that building was successful
           run: |
             if docker inspect flask:latest >/dev/null 2>&1; then
-              echo "success" >> log.txt
+              echo "image successfully built" >> log.txt
             else
-              echo "fail" >> log.txt
+              echo "image not able to be built" >> log.txt
             fi
           if: # Check if image creation successful
         - name: Export image to .tar
@@ -55,7 +55,7 @@ jobs:
 # `log.txt`:Log time & date by the specified format (What's the format?)
 # `log.txt`:Log the submission names
 # build the docker image (named 'flask') using `docker build -t flask .`
-# `log.txt`: 'image successfully build' / 'image not able to be built'
+# `log.txt`: 'image successfully built' / 'image not able to be built'
 # Upload the built image as an artifact
 
 
