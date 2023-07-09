@@ -15,13 +15,13 @@ jobs:
         - name: Build the image
           run: docker build -t flask ./nonexistant
         - name: Log that building was successful
+          if: always()  # Check if image creation successful
           run: |
             if docker inspect flask:latest >/dev/null 2>&1; then
               echo "image successfully built" >> log.txt
             else
               echo "image not able to be built" >> log.txt
             fi
-          if: always  # Check if image creation successful
         - name: Export image to .tar
           run: docker save -o flask.tar flask
         - name: Confirm creation of image (if successful)
