@@ -18,8 +18,16 @@ jobs:
             name: log
             path: log.txt
         - name: Build the image
-          run: docker build -t flask .; docker images
-
+          run: docker build -t flask .
+        - name: Export image to .tar
+          run: docker save -o flask.tar flask
+        - name: Confirm creation of image (if successful)
+          uses: actions/upload-artifact@v3
+          with:
+            name: flask
+            path: flask.tar
+            # Currently we assume that building succeded
+            # if:  # check if flask.tar exists
 #    test:
 
 #    run:
