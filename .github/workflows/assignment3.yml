@@ -21,10 +21,12 @@ jobs:
           run: docker build -t flask .
         - name: Log that building was successful
           run: |
-            if docker inspect flask:latest >/dev/null 2>&1; then
+            if docker inspect flask:latest >/dev/null 2>&1; 
+            then
               echo "___success___" >> log.txt
             else
               echo "___fail___" >> log.txt
+            fi
           if: # Check if image creation successful
         - name: Export image to .tar
           run: docker save -o flask.tar flask
