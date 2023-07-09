@@ -1,3 +1,31 @@
+name: assignment3
+
+on: push
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+        # - name: Set DATE
+        #  run: echo "DATE=$(date -Iminutes)" >> $GITHUB_ENV
+        - name: Log the current time and date
+          run: touch log.txt; echo "`date -Iminutes`" >> log.txt
+        - name: Log the submission names
+          run: echo "Ben & Avner" >> log.txt  # TODO: fill in with correct name format
+        - name: Upload log
+          uses: actions/upload-artifact@v3
+
+#    test:
+
+#    run:
+
+
+
+
+
+
 # Insert CI here
 
 
