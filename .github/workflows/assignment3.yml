@@ -16,6 +16,9 @@ jobs:
           run: echo "Ben & Avner" >> log.txt  # TODO: fill in with correct name format
         - name: Upload log
           uses: actions/upload-artifact@v3
+          with:
+            name: log
+            path: log.txt
 
 #    test:
 
