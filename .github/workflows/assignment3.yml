@@ -11,16 +11,16 @@ jobs:
         - name: Log the current time and date
           run: touch log.txt; echo "`date -Iminutes`" | tee log.txt
         - name: Log the submission names
-          run: echo "Ben Scholom, Avner Duchovni" | tee log.txt
+          run: echo "Ben Scholom, Avner Duchovni" | tee -a log.txt
         - name: Build the image
           run: docker build -t flask .
         - name: Log that building was successful
           if: always()
           run: |
             if docker inspect flask:latest >/dev/null 2>&1; then
-              echo "image successfully built" | tee log.txt
+              echo "image successfully built" | tee -a log.txt
             else
-              echo "image not able to be built" | tee log.txt
+              echo "image not able to be built" | tee -a log.txt
             fi
         - name: Export image to .tar
           run: docker save -o flask.tar flask
@@ -59,18 +59,18 @@ jobs:
         - name: Run server using the Docker image
           run: docker run --rm -p 8000:8000 flask &
         - name: Log container status
-          run: echo "Container up and running" | tee /tmp/log.txt
+          run: echo "Container up and running" | tee -a /tmp/log.txt
         - name: Log container failure
           if: failure()
-          run: echo 'Container failed to run' | tee /tmp/log.txt
+          run: echo 'Container failed to run' | tee -a /tmp/log.txt
         - name: Run tests using Pytest
           run: |
             pytest -v tests/assn3_test.py | tee assn3_test_results.txt
             exit_code=$?
             if [[ $exit_code != 0 ]]; then
-              echo "tests failed" | tee log.txt
+              echo "tests failed" | tee -a /tmp/log.txt
             else
-              echo "tests succeeded" | tee log.txt
+              echo "tests succeeded" | tee -a /tmp/log.txt
             fi
         - name: Upload test results
           if: always()
