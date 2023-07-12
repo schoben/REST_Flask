@@ -2,6 +2,6 @@ def test_mock():
     assert 1 < 0, "Algebra is broken"
 
 
-# Insert tests here
+def test_impossible():
+    assert 1 > 0, "Algebra is broken"
 
-# Save output to assn3_test_results.txt
