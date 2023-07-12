@@ -9,18 +9,18 @@ jobs:
         - name: Checkout
           uses: actions/checkout@v3
         - name: Log the current time and date
-          run: touch log.txt; echo "`date -Iminutes`" >> log.txt
+          run: touch log.txt; echo "`date -Iminutes`" | tee log.txt
         - name: Log the submission names
-          run: echo "Ben Scholom, Avner Duchovni" >> log.txt
+          run: echo "Ben Scholom, Avner Duchovni" | tee log.txt
         - name: Build the image
           run: docker build -t flask .
         - name: Log that building was successful
           if: always()
           run: |
             if docker inspect flask:latest >/dev/null 2>&1; then
-              echo "image successfully built" >> log.txt
+              echo "image successfully built" | tee log.txt
             else
-              echo "image not able to be built" >> log.txt
+              echo "image not able to be built" | tee log.txt
             fi
         - name: Export image to .tar
           run: docker save -o flask.tar flask
@@ -36,8 +36,51 @@ jobs:
             name: log
             path: log.txt
 
-
-#    test:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+        - name: Install dependecied
+          run: pip install -r requirements
+        - name: Download log
+          uses: actions/download-artifact@v3
+          with:
+            name: log
+            path: log.txt
+        - name: Fetch the Docker image and save it (get the `.tar` file)
+          uses: actions/download-artifact@v3
+          with:
+            name: flask
+            path: flask.tar
+        - name: Run server using the Docker image
+          run: docker run --rm -p 8000:8000 flask
+        - name: Log container status
+          run: echo "Container up and running" | tee log.txt
+        - name: Log container failure
+          if: failure()
+          run: echo 'Container failed to run' | tee log.txt
+        - name: Run tests using Pytest
+          run: |
+            pytest -v tests/assn3_test.py | tee assn3_test_results.txt
+            exit_code=$?
+            if [[ $exit_code != 0 ]]; then
+              echo "tests failed" | tee log.txt
+            else
+              echo "tests succeeded" | tee log.txt
+            fi
+        - name: Upload test results
+          if: always()
+          uses: actions/upload-artifact@v3
+          with:
+            name: assn3_test_result.txt
+            path: assn3_test_results.txt
+        - name: Upload log
+          if: always()
+          uses: actions/upload-artifact@v3
+          with:
+            name: log
+            path: log.txt
 
 # Step 2: 
 # Run the image  (something similar to  # docker run --rm -p 8000:8000 flask`)
@@ -46,7 +89,9 @@ jobs:
   # `assn3_test_results.txt`: log the output for each of the tests
   # `log.txt`: 'tests succeeded' / 'test failed' (single test fails -> fail), after completing all tests
 
-
+# Upload assn3_test_results.txt to GitHub, perhaps using the following command
+#   followed by saving the produced artifact
+# pytest tests/assn3_tests.py -v | tee assn3_test_results.txt
 
 
 
