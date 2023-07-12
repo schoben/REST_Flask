@@ -52,7 +52,7 @@ jobs:
         - name: Fetch the Docker image and save it (get the `.tar` file)
           uses: actions/download-artifact@v3
           with:
-            name: flask
+            name: image
             path: /tmp
         - name: Load the `.tar` image
           run: docker load --input /tmp/flask.tar
@@ -76,7 +76,7 @@ jobs:
           if: always()
           uses: actions/upload-artifact@v3
           with:
-            name: assn3_test_result.txt  # Think we can have a readable name here
+            name: tests
             path: assn3_test_results.txt
         - name: Upload log
           if: always()
