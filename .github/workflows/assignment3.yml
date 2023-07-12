@@ -54,6 +54,8 @@ jobs:
           with:
             name: flask
             path: flask.tar
+        - name: Load the `.tar` image
+          run: docker load -i flask.tar
         - name: Run server using the Docker image
           run: docker run --rm -p 8000:8000 flask
         - name: Log container status
