@@ -27,8 +27,8 @@ jobs:
         - name: Upload the exported image as artifact
           uses: actions/upload-artifact@v3
           with:
-            name: flask.tar
-            path: flask.tar
+            name: flask
+            path: /tmp/flask.tar
         - name: Upload log
           if: always()
           uses: actions/upload-artifact@v3
@@ -52,10 +52,10 @@ jobs:
         - name: Fetch the Docker image and save it (get the `.tar` file)
           uses: actions/download-artifact@v3
           with:
-            name: flask.tar
-            path: flask.tar
+            name: flask
+            path: /tmp
         - name: Load the `.tar` image
-          run: docker load < flask.tar
+          run: docker load --input /tmp/flask.tar
         - name: Run server using the Docker image
           run: docker run --rm -p 8000:8000 flask
         - name: Log container status
