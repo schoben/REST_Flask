@@ -28,7 +28,7 @@ jobs:
           uses: actions/upload-artifact@v3
           with:
             name: flask
-            path: /tmp/flask.tar
+            path: flask.tar
         - name: Upload log
           if: always()
           uses: actions/upload-artifact@v3
