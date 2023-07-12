@@ -27,7 +27,7 @@ jobs:
         - name: Upload the exported image as artifact
           uses: actions/upload-artifact@v3
           with:
-            name: flask
+            name: image
             path: flask.tar
         - name: Upload log
           if: always()
