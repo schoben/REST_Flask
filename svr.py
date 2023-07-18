@@ -8,11 +8,13 @@ import os
 from collections import namedtuple
 
 # pip imports
+import flask
 from flask import Flask  # , jsonify
 from flask_restful import Resource, Api, reqparse
 import requests
 
 # Setting up global variables
+HEADERS = ('Content-Type', 'application/json')
 app = Flask(__name__)  # initialize Flask
 api = Api(app)  # create API
 ninja_api_key = os.environ['NINJA_API_KEY']
@@ -77,7 +79,7 @@ class Dish:
         return self.sodium
 
     def get_as_dict(self):
-        return {'name': self.name, 'id': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
+        return {'name': self.name, 'ID': self.idx, 'cal': self.cal, 'size': self.size, 'sodium': self.sodium, 'sugar': self.sugar}
 
 
 
@@ -135,6 +137,8 @@ class Dishes(Resource):
 
     def post(self):
         # TODO: verify the JSON header. return 0 and status 415 (slide 13)
+        if HEADERS not in flask.request.headers.items():
+            return 0, 415
         parser = reqparse.RequestParser()
         parser.add_argument('name')
         args = parser.parse_args()
@@ -260,6 +264,9 @@ class MealsCollection:
         self.meals = dict()
 
     def add_meal(self, name, appetizer, main, dessert):
+        for meal in self.meals.values():
+            if name == meal.get_name():
+                raise ValueError(f"{name} already exists")
         self.num_of_meals += 1  # No concurrency support.  # TODO: failing to create a meal with result in an unused idx
         meal = Meal(name, self.num_of_meals, appetizer, main, dessert)
         self.meals[self.num_of_meals] = meal
@@ -301,14 +308,19 @@ class Meals(Resource):
     """RESTful API for the meals resource"""
 
     def post(self):
+        if HEADERS not in flask.request.headers.items():
+            return 0, 415
         print(f"meals post invoke")
         parser = reqparse.RequestParser()
-        parser.add_argument('name', required=True)
-        parser.add_argument('appetizer', required=True, type=int)
-        parser.add_argument('main', required=True, type=int)
-        parser.add_argument('dessert', required=True, type=int)
-        args = parser.parse_args()
-        print(args)
+        try:
+            parser.add_argument('name', required=True)
+            parser.add_argument('appetizer', required=True, type=int)
+            parser.add_argument('main', required=True, type=int)
+            parser.add_argument('dessert', required=True, type=int)
+            args = parser.parse_args()
+            print(args)
+        except Exception as e:
+            return -1, 422
         try:
             name = args['name']
             appetizer = args['appetizer']
@@ -321,6 +333,8 @@ class Meals(Resource):
         except KeyError as e:
             print(f"Invalid key: {e}")
             return -6, 422
+        except ValueError:
+            return -2, 422
 
     def get(self):
         print(f"Getting all meals")
@@ -365,7 +379,7 @@ class MealsId(Resource):
             appetizer = args['appetizer']
             main = args['main']
             dessert = args['dessert']
-            print(f"Updating a meal. Name: {name}, idx: {idx}, appetizer: {appetizer}, dessert: {dessert}")
+            print(f"Updating a meal. Name: {name}, ID: {idx}, appetizer: {appetizer}, dessert: {dessert}")
             meal = meals_collection.get_meal_by_idx(idx)
             meal.update(name, appetizer, main, dessert)
             return idx, 200
