@@ -85,6 +85,32 @@ jobs:
             name: log
             path: /tmp/log.txt
 
+    query:
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Install dependecies
+            run: pip install -r requirements.txt
+          - name: Fetch the Docker image and save it (get the `.tar` file)
+            uses: actions/download-artifact@v3
+            with:
+              name: image
+              path: /tmp
+          - name: Load the `.tar` image
+            run: docker load --input /tmp/flask.tar
+          - name: Run server using the Docker image
+            run: docker run --rm -p 8000:8000 flask &
+          - name: read query
+            run: python3 run_query.py
+          - name: upload response
+            uses: actions/upload-artifact@v3
+              with:
+              name: response
+              path: response.txt
+
+
 # Step 2: 
 # Run the image  (something similar to  # docker run --rm -p 8000:8000 flask`)
   # `log.txt`: 'Container up and running' / 'Container failed to run'
