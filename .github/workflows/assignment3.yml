@@ -66,7 +66,7 @@ jobs:
         - name: Run tests using Pytest
           run: |
             pytest -v tests/assn3_tests.py | tee assn3_test_results.txt
-            exit_code=$?
+            exit_code=${PIPESTATUS[0]}?
             if [[ $exit_code != 0 ]]; then
               echo "tests failed" | tee -a /tmp/log.txt  # TODO: this never happens!
             else
