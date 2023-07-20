@@ -1,0 +1,31 @@
+======================== 5 failed, 29 passed in 21.94s =========================
+
+_____________________________ test_get_all_dishes ______________________________
+
+>       assert "ID" in dish
+E       AssertionError: assert 'ID' in {'cal': 127.4, 'id': 1, 'name': 'rice', 'size': 100.0, ...}
+
+______________________ test_dish_api_media_not_supported _______________________
+
+response = <Response [415]>, returned_value = 0
+
+>       assert response.json() == returned_value
+E       AssertionError
+
+______________________ test_meal_api_media_not_supported _______________________
+
+>       assert response.json() == returned_value
+E       AssertionError
+
+_______________________ test_add_meal_missing_parameter ________________________
+
+response = <Response [400]>, error_code = 422
+
+>       assert response.status_code == error_code
+E       AssertionError
+
+_____________________________ test_add_exists_meal _____________________________
+response = <Response [201]>, error_code = 422
+
+>       assert response.status_code == error_code
+E       AssertionError
