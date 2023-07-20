@@ -65,7 +65,8 @@ jobs:
           run: echo 'Container failed to run' | tee -a /tmp/log.txt
         - name: Run tests using Pytest
           run: |
-            pytest -v tests/assn3_tests.py > tee assn3_test_results.txt
+            cd tests
+            pytest -v assn3_tests.py > assn3_test_results.txt
 #            exit_code=${PIPESTATUS[0]}?
 #            echo $exit code
 #            if [ $exit_code != 0 ]; then
