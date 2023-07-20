@@ -33,7 +33,7 @@ jobs:
           if: always()
           uses: actions/upload-artifact@v3
           with:
-            name: log
+            name: log.txt
             path: log.txt
 
     test:
@@ -47,7 +47,7 @@ jobs:
         - name: Download log
           uses: actions/download-artifact@v3
           with:
-            name: log
+            name: log.txt
             path: /tmp
         - name: Fetch the Docker image and save it (get the `.tar` file)
           uses: actions/download-artifact@v3
@@ -57,7 +57,7 @@ jobs:
         - name: Load the `.tar` image
           run: docker load --input /tmp/flask.tar
         - name: Run server using the Docker image
-          run: docker run --rm -p 8000:8000 flask & face
+          run: docker run --rm -p 8000:8000 flask &
         - name: Log container status
           run: echo "Container up and running" | tee -a /tmp/log.txt
         - name: Log container failure
@@ -77,13 +77,13 @@ jobs:
           if: always()
           uses: actions/upload-artifact@v3
           with:
-            name: tests
+            name: assn3_test_results.txt
             path: assn3_test_results.txt
         - name: Upload log
           if: always()
           uses: actions/upload-artifact@v3
           with:
-            name: log
+            name: log.txt
             path: /tmp/log.txt
 
     query:
@@ -108,7 +108,7 @@ jobs:
           - name: upload response
             uses: actions/upload-artifact@v3
             with:
-              name: response
+              name: response.txt
               path: response.txt
 
 
