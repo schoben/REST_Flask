@@ -65,15 +65,20 @@ jobs:
           run: echo 'Container failed to run' | tee -a /tmp/log.txt
         - name: Run tests using Pytest
           run: |
-            pytest -v tests/assn3_tests.py | tee assn3_test_results.txt
-            exit_code=${PIPESTATUS[0]}?
-            echo $exit code
-            if [ $exit_code != 0 ]; then
-              echo "tests failed" | tee -a /tmp/log.txt
-              exit 1
-            else
-              echo "tests succeeded" | tee -a /tmp/log.txt
-            fi
+            pytest -v tests/assn3_tests.py > tee assn3_test_results.txt
+#            exit_code=${PIPESTATUS[0]}?
+#            echo $exit code
+#            if [ $exit_code != 0 ]; then
+#              echo "tests failed" | tee -a /tmp/log.txt
+#              exit 1
+#            else
+#              echo "tests succeeded" | tee -a /tmp/log.txt
+#            fi
+        - name: log result failre
+          if: failure()
+          run: echo "tests failed" | tee -a /tmp/log.txt
+        - name: log result success
+          run: echo "tests succeeded" | tee -a /tmp/log.txt
         - name: Upload test results
           if: always()
           uses: actions/upload-artifact@v3
