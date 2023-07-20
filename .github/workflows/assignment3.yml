@@ -75,7 +75,7 @@ jobs:
 #            else
 #              echo "tests succeeded" | tee -a /tmp/log.txt
 #            fi
-        - name: log result failre
+        - name: log result failure
           if: failure()
           run: echo "tests failed" | tee -a /tmp/log.txt
         - name: log result success
@@ -85,7 +85,7 @@ jobs:
           uses: actions/upload-artifact@v3
           with:
             name: assn3_test_results.txt
-            path: assn3_test_results.txt
+            path: tests/assn3_test_results.txt
         - name: Upload log
           if: always()
           uses: actions/upload-artifact@v3
