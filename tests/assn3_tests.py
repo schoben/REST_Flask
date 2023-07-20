@@ -134,8 +134,8 @@ def test_8():
     assert res.json() == -2
 
 #
-# def test_fail():
-#     assert False
+def test_fail():
+    assert False
 
 
 # def test_missing_parameter():
