@@ -53,9 +53,9 @@ def verify_res_code(res, code):
     print("passed code assertion")
 
 
-def verify_res(res, json, code):
-    verify_res_json(res, json)
-    verify_res_code(res, code)
+# def verify_res(res, json, code):
+#     verify_res_json(res, json)
+#     verify_res_code(res, code)
 
 
 
@@ -107,7 +107,6 @@ verify_res_body(res, -3)
 print()
 
 
-exit()
 
 print(f"Test 6#: Getting dish of index 2. Should return -5 with code 404")
 res = get_dish_by_idx('2')
@@ -219,7 +218,7 @@ print()
 
 
 print("Adding a steak dish")
-res = post_dish('shnitzel')
+res = post_dish('schnitzel')
 print_res(res)
 print()
 

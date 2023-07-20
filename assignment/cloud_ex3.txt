@@ -1,0 +1,47 @@
+* Fix the base of the assignment so it matches that of ex1
+	- Option one
+		- Go back to ex1
+		- Fix the fixes we already did (the grader's feedback)
+	- Option two
+		- start from assignment 2
+		- strip down to ex1
+
+* Repo
+	- Dockerfile
+		- that does... what? (adjust ex1 Dockerfile)
+	- 'tests' directory with 'assn3_tests.py'
+		- 8 tests are required (p. 10 & 11 in the description)
+	- CI by push event
+		- Workflow
+		- build job: builds and saves the image as a GitHub artifact (or put dockerhub)
+			- starts generating 'log.txt': 
+				- log the start time&date (according to specified format)
+				- log submission names (hardcode)
+				- 'image successfully build' / 'image not able to be built' (test both?)
+				- save the image as an artifact in GitHub
+		- test job: uses created image and runs tests using PyTest
+			- save to 'log.txt'
+				- 'Container up and running' / 'Container failed to run'
+				- 'tests succeeded' / 'test failed' (single test fails -> fail)
+			- save 'assn3_test_results.txt'
+				- save the file as an artifact, even if an error occured (try.. except block)
+		- query job (integration test?): use the service & save output
+			- reads a file 'query.txt' (will be uploaded by the tester)
+			- creates a new file 'response.txt'
+	- Give permission to the tester
+			
+			
+Repo structure
+	- svr.py  # The service
+	- Dockerfile
+	- tests
+		- assn3_tests.py
+	- .github
+		- workflows
+			- assignment3.yml  # CI script
+	- query.txt  # Push this to trigger the CI
+	- log.txt  # Artifact 1
+	- response.txt  # Artifact 2
+	- assn_test_result.txt  # Artifact 3
+
+			

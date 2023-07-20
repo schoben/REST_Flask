@@ -12,7 +12,7 @@ WORKDIR ./app
 RUN pip install -r requirements.txt
 
 # Set port for the server. Default is 8000, but can be changed
-ARG port=80
+ARG port=8000
 ENV FLASK_RUN_PORT=$port
 EXPOSE $port
 

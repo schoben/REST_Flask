@@ -1,0 +1,113 @@
+name: assignment3
+
+on: push
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+        - name: Log the current time and date
+          run: touch log.txt; echo "`date -Iminutes`" | tee log.txt
+        - name: Log the submission names
+          run: echo "Ben Scholom, Avner Duchovni" | tee -a log.txt
+        - name: Build the image
+          run: docker build -t flask .
+        - name: Log that building was successful
+          if: always()
+          run: |
+            if docker inspect flask:latest >/dev/null 2>&1; then
+              echo "image successfully built" | tee -a log.txt
+            else
+              echo "image not able to be built" | tee -a log.txt
+            fi
+        - name: Export image to .tar
+          run: docker save -o flask.tar flask
+        - name: Upload the exported image as artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: image
+            path: flask.tar
+        - name: Upload log
+          if: always()
+          uses: actions/upload-artifact@v3
+          with:
+            name: log.txt
+            path: log.txt
+
+    test:
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v3
+        - name: Install dependecied
+          run: pip install -r requirements.txt
+        - name: Download log
+          uses: actions/download-artifact@v3
+          with:
+            name: log.txt
+            path: /tmp
+        - name: Fetch the Docker image and save it (get the `.tar` file)
+          uses: actions/download-artifact@v3
+          with:
+            name: image
+            path: /tmp
+        - name: Load the `.tar` image
+          run: docker load --input /tmp/flask.tar
+        - name: Run server using the Docker image
+          run: docker run --rm -p 8000:8000 flask &
+        - name: Log container status
+          run: echo "Container up and running" | tee -a /tmp/log.txt
+        - name: Log container failure
+          if: failure()
+          run: echo 'Container failed to run' | tee -a /tmp/log.txt
+        - name: Run tests using Pytest
+          run: |
+            cd tests
+            pytest -v assn3_tests.py > assn3_test_results.txt
+        - name: log result failure
+          if: failure()
+          run: echo "tests failed" | tee -a /tmp/log.txt
+        - name: log result success
+          run: echo "tests succeeded" | tee -a /tmp/log.txt
+        - name: Upload test results
+          if: always()
+          uses: actions/upload-artifact@v3
+          with:
+            name: assn3_test_results.txt
+            path: tests/assn3_test_results.txt
+        - name: Upload log
+          if: always()
+          uses: actions/upload-artifact@v3
+          with:
+            name: log.txt
+            path: /tmp/log.txt
+
+    query:
+        runs-on: ubuntu-latest
+        needs: test
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v3
+          - name: Install dependecies
+            run: pip install -r requirements.txt
+          - name: Fetch the Docker image and save it (get the `.tar` file)
+            uses: actions/download-artifact@v3
+            with:
+              name: image
+              path: /tmp
+          - name: Load the `.tar` image
+            run: docker load --input /tmp/flask.tar
+          - name: Run server using the Docker image
+            run: docker run --rm -p 8000:8000 flask &
+          - name: read query
+            run: python3 run_query.py
+          - name: upload response
+            uses: actions/upload-artifact@v3
+            with:
+              name: response.txt
+              path: response.txt
+
+
