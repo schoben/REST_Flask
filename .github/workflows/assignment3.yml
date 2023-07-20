@@ -67,14 +67,6 @@ jobs:
           run: |
             cd tests
             pytest -v assn3_tests.py > assn3_test_results.txt
-#            exit_code=${PIPESTATUS[0]}?
-#            echo $exit code
-#            if [ $exit_code != 0 ]; then
-#              echo "tests failed" | tee -a /tmp/log.txt
-#              exit 1
-#            else
-#              echo "tests succeeded" | tee -a /tmp/log.txt
-#            fi
         - name: log result failure
           if: failure()
           run: echo "tests failed" | tee -a /tmp/log.txt
