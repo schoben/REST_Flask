@@ -69,7 +69,7 @@ jobs:
             exit_code=${PIPESTATUS[0]}?
             if [[ $exit_code != 0 ]]; then
               echo "tests failed" | tee -a /tmp/log.txt
-              run exit 1
+              exit 1
             else
               echo "tests succeeded" | tee -a /tmp/log.txt
             fi
