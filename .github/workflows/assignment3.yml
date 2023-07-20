@@ -13,7 +13,7 @@ jobs:
         - name: Log the submission names
           run: echo "Ben Scholom, Avner Duchovni" | tee -a log.txt
         - name: Build the image
-          run: docker build -t flask . face
+          run: docker build -t flask .
         - name: Log that building was successful
           if: always()
           run: |
@@ -68,7 +68,8 @@ jobs:
             pytest -v tests/assn3_tests.py | tee assn3_test_results.txt
             exit_code=${PIPESTATUS[0]}?
             if [[ $exit_code != 0 ]]; then
-              echo "tests failed" | tee -a /tmp/log.txt  # TODO: this never happens!
+              echo "tests failed" | tee -a /tmp/log.txt
+              run exit 1
             else
               echo "tests succeeded" | tee -a /tmp/log.txt
             fi
