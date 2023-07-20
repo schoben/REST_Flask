@@ -133,9 +133,9 @@ def test_8():
     assert res.status_code in [400, 422]
     assert res.json() == -2
 
-
-def test_fail():
-    assert False
+#
+# def test_fail():
+#     assert False
 
 
 # def test_missing_parameter():

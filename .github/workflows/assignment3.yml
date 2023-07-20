@@ -57,7 +57,7 @@ jobs:
         - name: Load the `.tar` image
           run: docker load --input /tmp/flask.tar
         - name: Run server using the Docker image
-          run: docker run --rm -p 8000:8000 flask &
+          run: docker run --rm -p 8000:8000 flask & face
         - name: Log container status
           run: echo "Container up and running" | tee -a /tmp/log.txt
         - name: Log container failure
