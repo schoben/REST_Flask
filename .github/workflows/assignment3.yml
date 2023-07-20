@@ -111,22 +111,3 @@ jobs:
               path: response.txt
 
 
-# Step 2: 
-# Run the image  (something similar to  # docker run --rm -p 8000:8000 flask`)
-  # `log.txt`: 'Container up and running' / 'Container failed to run'
-# Run the `tests/assn3_test.py` test file with PyTest
-  # `assn3_test_results.txt`: log the output for each of the tests
-  # `log.txt`: 'tests succeeded' / 'test failed' (single test fails -> fail), after completing all tests
-
-# Upload assn3_test_results.txt to GitHub, perhaps using the following command
-#   followed by saving the produced artifact
-# pytest tests/assn3_tests.py -v | tee assn3_test_results.txt
-
-
-
-#    run:
-
-# Step 3: Query job
-# Run the image (should automatically read the 'query.txt' file as input)
-# `response.txt`: Log the responses for each of the queries in `query.txt`
-
