@@ -13,7 +13,7 @@ jobs:
         - name: Log the submission names
           run: echo "Ben Scholom, Avner Duchovni" | tee -a log.txt
         - name: Build the image
-          run: docker build -t flask
+          run: docker build -t flask . face
         - name: Log that building was successful
           if: always()
           run: |
