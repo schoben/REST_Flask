@@ -2,9 +2,6 @@ import requests
 import json
 
 
-## test_2 should fail
-
-
 class ConnectionController:
 
     URL = "http://127.0.0.1:8000"
@@ -96,7 +93,6 @@ def test_2():
 
     orange_sodium = response.json()["sodium"]
     assert 0.9 <= orange_sodium <= 1.1
-    assert False
 
 
 def test_3():
